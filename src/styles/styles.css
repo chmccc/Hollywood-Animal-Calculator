@@ -1165,3 +1165,234 @@ footer { text-align: center; color: #555; font-size: 0.8rem; margin-top: 40px; }
 .file-action-btn:active {
     transform: translateY(1px);
 }
+
+/* ========================================= */
+/* --- INPUT MODE TOGGLE --- */
+/* ========================================= */
+
+/* Header controls wrapper for inline buttons */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mode-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.mode-toggle-btn:hover {
+    border-color: var(--text-main);
+    color: var(--text-main);
+}
+
+/* ========================================= */
+/* --- TAG BROWSER STYLES --- */
+/* ========================================= */
+
+/* Vertical scrolling container with category sections */
+.tag-browser-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px;
+    background: #1a1a1a;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+/* Each category section */
+.tag-browser-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Accordion header for each category */
+.tag-browser-accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.tag-browser-accordion-header:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #555;
+}
+
+.tag-browser-accordion-header.expanded {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+}
+
+.accordion-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.accordion-badge {
+    background: var(--border);
+    color: var(--text-main);
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.accordion-badge.excluded {
+    background: rgba(255, 95, 95, 0.3);
+    color: var(--danger);
+}
+
+.accordion-badge.locked {
+    background: rgba(212, 175, 55, 0.3);
+    color: var(--accent);
+}
+
+.accordion-icon {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    font-weight: 300;
+    line-height: 1;
+}
+
+/* Flex wrap for cards within each section */
+.tag-browser-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    transition: all 0.2s ease;
+}
+
+.tag-browser-cards.collapsed {
+    display: none;
+}
+
+/* Individual card - styled like game's tan/cream cards */
+.tag-browser-card {
+    background: linear-gradient(135deg, #d4c4a8 0%, #c9b896 100%);
+    color: #5a3d2b;
+    border: 1px solid #b8a67d;
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Corner decorations like game cards */
+.tag-browser-card::before,
+.tag-browser-card::after {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border: 1px solid #8b7355;
+    opacity: 0.6;
+}
+
+.tag-browser-card::before {
+    top: 3px;
+    left: 3px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.tag-browser-card::after {
+    bottom: 3px;
+    right: 3px;
+    border-left: none;
+    border-top: none;
+}
+
+.tag-browser-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Selected for LOCKED - gold highlight */
+.tag-browser-card.selected-locked {
+    background: linear-gradient(135deg, #f0e4b8 0%, #d4af37 100%);
+    border-color: #b8962d;
+    color: #4a3a15;
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+}
+
+.tag-browser-card.selected-locked::before,
+.tag-browser-card.selected-locked::after {
+    border-color: #8b7320;
+    opacity: 0.8;
+}
+
+/* Selected for EXCLUDED - muted red style */
+.tag-browser-card.selected-excluded {
+    background: linear-gradient(135deg, #d4a8a8 0%, #c48080 100%);
+    border-color: #a06060;
+    color: #5a2b2b;
+    box-shadow: 0 0 12px rgba(255, 95, 95, 0.4);
+}
+
+.tag-browser-card.selected-excluded::before,
+.tag-browser-card.selected-excluded::after {
+    border-color: #8b4040;
+    opacity: 0.8;
+}
+
+/* ========================================= */
+/* --- CHIP EXCLUDE BUTTON --- */
+/* ========================================= */
+
+.gen-tag-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chip-exclude-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 2px;
+    margin-left: 4px;
+    line-height: 1;
+    transition: color 0.15s;
+}
+
+.chip-exclude-btn:hover {
+    color: var(--danger);
+}

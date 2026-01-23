@@ -5,7 +5,7 @@ const CATEGORY_ORDER = [
   "Genre", "Setting", "Protagonist", "Antagonist", "Supporting Character", "Theme & Event", "Finale"
 ];
 
-function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, lockedTagIds = new Set() }) {
+function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, onExcludeTag, lockedTagIds = new Set() }) {
   const { tags } = useApp();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -86,6 +86,18 @@ function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, l
                 className={`gen-tag-chip ${isFixed ? 'tag-fixed' : ''}`}
               >
                 {tagName} <small>{t.category}</small>
+                {onExcludeTag && !isFixed && (
+                  <button
+                    className="chip-exclude-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onExcludeTag(t.id, t.category);
+                    }}
+                    title="Exclude this tag and regenerate"
+                  >
+                    ×
+                  </button>
+                )}
               </span>
             );
           })}

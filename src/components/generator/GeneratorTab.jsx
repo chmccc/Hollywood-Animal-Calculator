@@ -1,9 +1,10 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useScriptGenerator } from '../../hooks/useScriptGenerator';
 import Card from '../common/Card';
 import Slider from '../common/Slider';
 import CategorySelector from '../common/CategorySelector';
+import TagBrowser from '../common/TagBrowser';
 import ScriptCard from './ScriptCard';
 import { collectTagInputs } from '../../utils/tagHelpers';
 
@@ -26,8 +27,19 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
   const [lockedTags, setLockedTags] = useState([]);
   const [excludedTags, setExcludedTags] = useState([]);
   const [genrePercents, setGenrePercents] = useState({});
+  const [excludedInputMode, setExcludedInputMode] = useState('browser'); // 'dropdown' | 'browser'
   
   const fileInputRef = useRef(null);
+
+  // Memoized sets for TagBrowser
+  const lockedTagIds = useMemo(() => 
+    new Set(lockedTags.filter(t => t.id).map(t => t.id)), 
+    [lockedTags]
+  );
+  const excludedTagIds = useMemo(() => 
+    new Set(excludedTags.filter(t => t.id).map(t => t.id)), 
+    [excludedTags]
+  );
 
   const handleProfileChange = useCallback((newProfile) => {
     setProfile(newProfile);
@@ -72,6 +84,43 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
       setExcludedTags([]);
     }
   };
+
+  // TagBrowser toggle handler for excluded tags
+  const handleExcludedTagToggle = useCallback((tagId, category) => {
+    setExcludedTags(prev => {
+      const exists = prev.some(t => t.id === tagId);
+      if (exists) {
+        return prev.filter(t => t.id !== tagId);
+      } else {
+        return [...prev, { id: tagId, category }];
+      }
+    });
+  }, []);
+
+  // Quick exclude from generated results - adds tag to excluded and regenerates
+  const handleExcludeFromResult = useCallback((tagId, category) => {
+    // Check if already excluded
+    if (excludedTags.some(t => t.id === tagId)) return;
+
+    // Add to excluded tags
+    const newExcludedTags = [...excludedTags, { id: tagId, category }];
+    setExcludedTags(newExcludedTags);
+
+    // Regenerate with the new exclusions immediately
+    const fixedTags = collectTagInputs(
+      lockedTags.filter(t => t.id),
+      genrePercents
+    );
+    const excluded = collectTagInputs(
+      newExcludedTags.filter(t => t.id),
+      {}
+    );
+
+    const result = generateScripts(targetComp, targetScore, fixedTags, excluded);
+    if (result.error) {
+      alert(result.error);
+    }
+  }, [excludedTags, lockedTags, genrePercents, targetComp, targetScore, generateScripts]);
 
   const handleExport = () => {
     const result = exportPinnedScripts();
@@ -198,22 +247,38 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
         {/* Excluded Elements */}
         <div className="card-header">
           <h3 style={{ color: 'var(--danger)' }}>Excluded Elements</h3>
-          <button className="reset-btn" onClick={handleResetExcluded}>Reset Bans</button>
+          <div className="header-controls">
+            <button
+              className="mode-toggle-btn"
+              onClick={() => setExcludedInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
+            >
+              {excludedInputMode === 'dropdown' ? 'Use Browse Mode' : 'Use Dropdown Mode'}
+            </button>
+            <button className="reset-btn" onClick={handleResetExcluded}>Reset Bans</button>
+          </div>
         </div>
         <p className="subtitle">Select tags to <strong>BAN</strong> (e.g., due to "The Code"). The generator will never pick these.</p>
-        
-        <div id="selectors-container-excluded">
-          {categories.map(category => (
-            <CategorySelector
-              key={`excluded-${category}`}
-              category={category}
-              selectedTags={excludedTags}
-              onTagsChange={setExcludedTags}
-              context="excluded"
-              isExcluded={true}
-            />
-          ))}
-        </div>
+
+        {excludedInputMode === 'dropdown' ? (
+          <div id="selectors-container-excluded">
+            {categories.map(category => (
+              <CategorySelector
+                key={`excluded-${category}`}
+                category={category}
+                selectedTags={excludedTags}
+                onTagsChange={setExcludedTags}
+                context="excluded"
+                isExcluded={true}
+              />
+            ))}
+          </div>
+        ) : (
+          <TagBrowser
+            selectedTagIds={excludedTagIds}
+            onToggle={handleExcludedTagToggle}
+            variant="excluded"
+          />
+        )}
 
         <div className="action-area">
           <button className="analyze-btn" onClick={handleGenerate}>
@@ -259,7 +324,7 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                 onTogglePin={() => togglePin(script.uniqueId)}
                 onNameChange={(name) => updateScriptName(script.uniqueId, name)}
                 onTransfer={onTransferToAdvertisers}
-                lockedTagIds={new Set(lockedTags.filter(t => t.id).map(t => t.id))}
+                lockedTagIds={lockedTagIds}
               />
             ))
           )}
@@ -280,7 +345,8 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                 isPinned={pinnedScripts.some(p => String(p.uniqueId) === String(script.uniqueId))}
                 onTogglePin={() => togglePin(script.uniqueId)}
                 onTransfer={onTransferToAdvertisers}
-                lockedTagIds={new Set(lockedTags.filter(t => t.id).map(t => t.id))}
+                onExcludeTag={handleExcludeFromResult}
+                lockedTagIds={lockedTagIds}
               />
             ))}
           </div>

@@ -40,6 +40,7 @@ export function AppProvider({ children }) {
   const [genrePairs, setGenrePairs] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const rawTagsRef = useRef({}); // Store raw tag data for re-processing
+  const localizationAppliedRef = useRef(false); // Track if localization has been applied to current tags
 
   // Load localization - do this FIRST
   useEffect(() => {
@@ -122,6 +123,7 @@ export function AppProvider({ children }) {
         }
 
         rawTagsRef.current = processedTags;
+        localizationAppliedRef.current = false; // Reset when tags are loaded
         setTags(processedTags);
         setIsLoading(false);
       } catch (e) {
@@ -133,9 +135,13 @@ export function AppProvider({ children }) {
     loadExternalData();
   }, []);
 
-  // Update tag names when localization changes
+  // Apply localization to tags when both are available
   useEffect(() => {
-    if (Object.keys(rawTagsRef.current).length > 0 && Object.keys(localizationMap).length > 0) {
+    const hasLocalization = Object.keys(localizationMap).length > 0;
+    const hasTags = Object.keys(tags).length > 0;
+    
+    if (hasLocalization && hasTags && !localizationAppliedRef.current) {
+      localizationAppliedRef.current = true;
       setTags(prevTags => {
         const updated = {};
         for (const tagId in prevTags) {
@@ -147,7 +153,15 @@ export function AppProvider({ children }) {
         return updated;
       });
     }
-  }, [localizationMap]);
+    
+    // Reset the flag when localizationMap changes (e.g., language switch)
+    // This allows re-applying with new language
+  }, [localizationMap, tags]);
+
+  // Reset localization applied flag when language changes
+  useEffect(() => {
+    localizationAppliedRef.current = false;
+  }, [currentLanguage]);
 
   const changeLanguage = useCallback((lang) => {
     setCurrentLanguage(lang);
