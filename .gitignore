@@ -32,3 +32,4 @@ Thumbs.db
 # Cache
 .cache/
 .eslintcache
+src/save.json

@@ -471,6 +471,19 @@ select:focus { outline: none; border-color: var(--accent); }
 }
 .reset-btn:hover { border-color: var(--text-main); color: var(--text-main); }
 
+.save-btn {
+    background: transparent;
+    border: 1px solid var(--success);
+    color: var(--success);
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.save-btn:hover { background: var(--success); color: #000; }
+
 /* --- SEARCH BAR --- */
 .search-wrapper { position: relative; }
 input[type="text"] {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useScriptGenerator } from '../../hooks/useScriptGenerator';
 import Card from '../common/Card';
@@ -30,6 +30,21 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
   const [excludedInputMode, setExcludedInputMode] = useState('browser'); // 'dropdown' | 'browser'
   
   const fileInputRef = useRef(null);
+
+  // Load exclusions from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('excludedTags');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setExcludedTags(parsed);
+        }
+      } catch (e) {
+        console.error('Failed to parse saved exclusions:', e);
+      }
+    }
+  }, []);
 
   // Memoized sets for TagBrowser
   const lockedTagIds = useMemo(() => 
@@ -77,12 +92,20 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
   };
 
   const handleResetExcluded = () => {
+    // Clear localStorage when resetting
+    localStorage.removeItem('excludedTags');
+    
     if (profile === 'starting') {
       const excluded = getExcludedTagsForStarterProfile();
       setExcludedTags(excluded);
     } else {
       setExcludedTags([]);
     }
+  };
+
+  const handleSaveExclusions = () => {
+    localStorage.setItem('excludedTags', JSON.stringify(excludedTags));
+    alert(`Saved ${excludedTags.length} exclusion${excludedTags.length !== 1 ? 's' : ''} to local storage.`);
   };
 
   // TagBrowser toggle handler for excluded tags
@@ -254,6 +277,7 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
             >
               {excludedInputMode === 'dropdown' ? 'Use Browse Mode' : 'Use Dropdown Mode'}
             </button>
+            <button className="save-btn" onClick={handleSaveExclusions}>Save Exclusions</button>
             <button className="reset-btn" onClick={handleResetExcluded}>Reset Bans</button>
           </div>
         </div>
