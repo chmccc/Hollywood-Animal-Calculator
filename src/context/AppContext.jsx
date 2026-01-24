@@ -1,7 +1,12 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { CATEGORIES, STARTER_WHITELIST } from '../data/gameData';
+import { parseSaveFile } from '../utils/saveParser';
 
 const AppContext = createContext(null);
+
+// localStorage keys for save data persistence
+const STORAGE_KEY_OWNED_TAGS = 'ownedTagIds';
+const STORAGE_KEY_SAVE_SOURCE = 'saveSourceName';
 
 // Helper function to beautify tag names
 function beautifyTagName(rawId, localizationMap = {}) {
@@ -41,6 +46,25 @@ export function AppProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const rawTagsRef = useRef({}); // Store raw tag data for re-processing
   const localizationAppliedRef = useRef(false); // Track if localization has been applied to current tags
+
+  // Save file state - owned tags from uploaded save
+  const [ownedTagIds, setOwnedTagIds] = useState(() => {
+    // Load from localStorage on init
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_OWNED_TAGS);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return new Set(parsed);
+      }
+    } catch (e) {
+      console.error('Failed to load owned tags from localStorage:', e);
+    }
+    return null;
+  });
+  
+  const [saveSourceName, setSaveSourceName] = useState(() => {
+    return localStorage.getItem(STORAGE_KEY_SAVE_SOURCE) || null;
+  });
 
   // Load localization - do this FIRST
   useEffect(() => {
@@ -167,11 +191,49 @@ export function AppProvider({ children }) {
     setCurrentLanguage(lang);
   }, []);
 
+  // Load save data from JSON string
+  const loadSaveData = useCallback((jsonString, sourceName = 'save.json') => {
+    const { tagIds, error } = parseSaveFile(jsonString);
+    
+    if (error) {
+      return { success: false, error };
+    }
+    
+    const tagSet = new Set(tagIds);
+    setOwnedTagIds(tagSet);
+    setSaveSourceName(sourceName);
+    
+    // Persist to localStorage
+    try {
+      localStorage.setItem(STORAGE_KEY_OWNED_TAGS, JSON.stringify(tagIds));
+      localStorage.setItem(STORAGE_KEY_SAVE_SOURCE, sourceName);
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+    }
+    
+    return { success: true, count: tagIds.length };
+  }, []);
+
+  // Clear save data
+  const clearSaveData = useCallback(() => {
+    setOwnedTagIds(null);
+    setSaveSourceName(null);
+    
+    try {
+      localStorage.removeItem(STORAGE_KEY_OWNED_TAGS);
+      localStorage.removeItem(STORAGE_KEY_SAVE_SOURCE);
+    } catch (e) {
+      console.error('Failed to clear localStorage:', e);
+    }
+  }, []);
+
+  // Get tags by category, filtered by owned tags if a save is loaded
   const getTagsByCategory = useCallback((category) => {
     return Object.values(tags)
       .filter(t => t.category === category)
+      .filter(t => !ownedTagIds || ownedTagIds.has(t.id)) // Filter by owned if save loaded
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [tags]);
+  }, [tags, ownedTagIds]);
 
   const value = {
     currentLanguage,
@@ -183,7 +245,12 @@ export function AppProvider({ children }) {
     categories: CATEGORIES,
     starterWhitelist: STARTER_WHITELIST,
     isLoading,
-    getTagsByCategory
+    getTagsByCategory,
+    // Save file state
+    ownedTagIds,
+    saveSourceName,
+    loadSaveData,
+    clearSaveData
   };
 
   return (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { buildSearchIndex, searchTags } from '../../utils/tagHelpers';
 
@@ -9,7 +9,7 @@ function SearchBar({ onSelect, placeholder = "Type to find a tag..." }) {
   const [showResults, setShowResults] = useState(false);
   const wrapperRef = useRef(null);
 
-  const searchIndex = buildSearchIndex(tags);
+  const searchIndex = useMemo(() => buildSearchIndex(tags), [tags]);
 
   useEffect(() => {
     if (query.length < 2) {

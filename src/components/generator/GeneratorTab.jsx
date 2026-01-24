@@ -9,7 +9,7 @@ import ScriptCard from './ScriptCard';
 import { collectTagInputs } from '../../utils/tagHelpers';
 
 function GeneratorTab({ onTransferToAdvertisers = null }) {
-  const { categories } = useApp();
+  const { categories, ownedTagIds } = useApp();
   const {
     generatedScripts,
     pinnedScripts,
@@ -17,11 +17,9 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     togglePin,
     updateScriptName,
     exportPinnedScripts,
-    importPinnedScripts,
-    getExcludedTagsForStarterProfile
+    importPinnedScripts
   } = useScriptGenerator();
 
-  const [profile, setProfile] = useState('custom');
   const [targetComp, setTargetComp] = useState(4.0);
   const [targetScore, setTargetScore] = useState(6);
   const [lockedTags, setLockedTags] = useState([]);
@@ -56,16 +54,6 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     [excludedTags]
   );
 
-  const handleProfileChange = useCallback((newProfile) => {
-    setProfile(newProfile);
-    if (newProfile === 'starting') {
-      const excluded = getExcludedTagsForStarterProfile();
-      setExcludedTags(excluded);
-    } else {
-      setExcludedTags([]);
-    }
-  }, [getExcludedTagsForStarterProfile]);
-
   const handleGenrePercentChange = useCallback((tagId, value) => {
     setGenrePercents(prev => ({ ...prev, [tagId]: value }));
   }, []);
@@ -94,13 +82,7 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
   const handleResetExcluded = () => {
     // Clear localStorage when resetting
     localStorage.removeItem('excludedTags');
-    
-    if (profile === 'starting') {
-      const excluded = getExcludedTagsForStarterProfile();
-      setExcludedTags(excluded);
-    } else {
-      setExcludedTags([]);
-    }
+    setExcludedTags([]);
   };
 
   const handleSaveExclusions = () => {
@@ -188,33 +170,11 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
       <Card className="builder-card">
         <div className="card-header">
           <h3>Generator Settings</h3>
-        </div>
-        
-        {/* Profile Selection */}
-        <div className="profile-control-container">
-          <div className="profile-label-row">
-            <label>Tag Availability</label>
-          </div>
-          <div className="profile-btn-group">
-            <button
-              className={`profile-btn ${profile === 'starting' ? 'active' : ''}`}
-              onClick={() => handleProfileChange('starting')}
-            >
-              Starting Tags
-            </button>
-            <button
-              className={`profile-btn ${profile === 'custom' ? 'active' : ''}`}
-              onClick={() => handleProfileChange('custom')}
-            >
-              Custom
-            </button>
-          </div>
-          <p className="subtitle" style={{ marginTop: '8px', fontSize: '0.8rem' }}>
-            {profile === 'starting' 
-              ? <><strong style={{ color: 'var(--accent)' }}>Starting Tags</strong> are available. Everything else is moved to Excluded.</>
-              : "All tags are available. You can manually exclude tags below."
-            }
-          </p>
+          {ownedTagIds && (
+            <span className="save-indicator">
+              Using {ownedTagIds.size} tags from save
+            </span>
+          )}
         </div>
 
         <div className="score-controls-wrapper">

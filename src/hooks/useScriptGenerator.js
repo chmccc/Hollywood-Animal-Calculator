@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { calculateMatrixScore, calculateTotalBonuses, getScoringElementCount } from '../utils/calculations';
 
 export function useScriptGenerator() {
-  const { tags, compatibility, genrePairs, starterWhitelist } = useApp();
+  const { tags, compatibility, genrePairs, starterWhitelist, ownedTagIds } = useApp();
   const [generatedScripts, setGeneratedScripts] = useState([]);
   const [pinnedScripts, setPinnedScripts] = useState(() => {
     // Load from localStorage on init
@@ -32,12 +32,16 @@ export function useScriptGenerator() {
       }
     }
     const unique = new Set(valid);
-    return [...unique].filter(id => !excludedIds.has(id));
-  }, [genrePairs]);
+    return [...unique]
+      .filter(id => !excludedIds.has(id))
+      .filter(id => !ownedTagIds || ownedTagIds.has(id)); // Filter by owned tags if save loaded
+  }, [genrePairs, ownedTagIds]);
 
   const getRandomTagByCategory = useCallback((category, currentTags, excludedIds) => {
     const existingIds = new Set(currentTags.map(t => t.id));
-    const allTags = Object.values(tags).filter(t => t.category === category);
+    const allTags = Object.values(tags)
+      .filter(t => t.category === category)
+      .filter(t => !ownedTagIds || ownedTagIds.has(t.id)); // Filter by owned tags if save loaded
     const available = allTags.filter(t => !existingIds.has(t.id) && !excludedIds.has(t.id));
     
     if (available.length === 0) return null;
@@ -48,7 +52,7 @@ export function useScriptGenerator() {
       percent: 1.0,
       category: category
     };
-  }, [tags]);
+  }, [tags, ownedTagIds]);
 
   const runGenerationAlgorithm = useCallback((targetComp, targetCount, fixedTags, excludedTags) => {
     const excludedIds = new Set(excludedTags.map(t => t.id));
