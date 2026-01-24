@@ -1,20 +1,114 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useSynergyCalculation } from '../../hooks/useSynergyCalculation';
+import { MULTI_SELECT_CATEGORIES } from '../../data/gameData';
 import Card from '../common/Card';
 import SearchBar from '../common/SearchBar';
 import CategorySelector from '../common/CategorySelector';
+import TagBrowser from '../common/TagBrowser';
 import SynergyResults from './SynergyResults';
 import { collectTagInputs } from '../../utils/tagHelpers';
 
+// Genre percentage slider component for browse mode
+function GenreSlider({ tagId, tagName, value, onChange }) {
+  const sliderRef = useRef(null);
+
+  useEffect(() => {
+    if (sliderRef.current) {
+      const color = '#4cd964';
+      sliderRef.current.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${value}%, #444 ${value}%, #444 100%)`;
+    }
+  }, [value]);
+
+  const handleNumberChange = (e) => {
+    const rawValue = parseInt(e.target.value) || 0;
+    const snappedValue = Math.round(rawValue / 5) * 5;
+    onChange(tagId, Math.max(0, Math.min(100, snappedValue)));
+  };
+
+  return (
+    <div className="browser-genre-slider">
+      <span className="genre-slider-label">{tagName}</span>
+      <div className="genre-percent-wrapper">
+        <input
+          ref={sliderRef}
+          type="range"
+          className="styled-slider percent-slider"
+          min={0}
+          max={100}
+          step={5}
+          value={value}
+          onChange={(e) => onChange(tagId, parseInt(e.target.value))}
+        />
+        <input
+          type="number"
+          className="percent-input"
+          min={0}
+          max={100}
+          step={5}
+          value={value}
+          onChange={handleNumberChange}
+        />
+        <span style={{ fontSize: '0.8rem', color: '#888' }}>%</span>
+      </div>
+    </div>
+  );
+}
+
 function SynergyTab({ onTransferToAdvertisers = null }) {
-  const { categories, isLoading } = useApp();
+  const { categories, isLoading, tags } = useApp();
   const { calculateSynergy } = useSynergyCalculation();
   
   const [selectedTags, setSelectedTags] = useState([]);
   const [genrePercents, setGenrePercents] = useState({});
   const [results, setResults] = useState(null);
   const [initialized, setInitialized] = useState(false);
+  const [inputMode, setInputMode] = useState('dropdown'); // 'dropdown' | 'browser'
+
+  // Memoized Set for TagBrowser
+  const selectedTagIds = useMemo(() => 
+    new Set(selectedTags.filter(t => t.id).map(t => t.id)), 
+    [selectedTags]
+  );
+
+  // Get selected genres with their names for the sliders
+  const selectedGenres = useMemo(() => {
+    return selectedTags
+      .filter(t => t.category === 'Genre' && t.id)
+      .map(t => ({
+        id: t.id,
+        name: tags[t.id]?.name || t.id
+      }));
+  }, [selectedTags, tags]);
+
+  // Calculate genre percentage sum for validation
+  const genrePercentSum = useMemo(() => {
+    if (selectedGenres.length <= 1) return 100;
+    return selectedGenres.reduce((sum, genre) => {
+      return sum + (genrePercents[genre.id] ?? 100);
+    }, 0);
+  }, [selectedGenres, genrePercents]);
+
+  // Validation: require Genre, Setting, Protagonist, and valid genre percentages
+  const validation = useMemo(() => {
+    const hasGenre = selectedTags.some(t => t.category === 'Genre' && t.id);
+    const hasSetting = selectedTags.some(t => t.category === 'Setting' && t.id);
+    const hasProtagonist = selectedTags.some(t => t.category === 'Protagonist' && t.id);
+    const hasValidPercents = genrePercentSum === 100;
+    
+    const missing = [
+      !hasGenre && 'Genre',
+      !hasSetting && 'Setting', 
+      !hasProtagonist && 'Protagonist'
+    ].filter(Boolean);
+    
+    return {
+      isValid: hasGenre && hasSetting && hasProtagonist && hasValidPercents,
+      hasCoreRequirements: hasGenre && hasSetting && hasProtagonist,
+      hasValidPercents,
+      missing
+    };
+  }, [selectedTags, genrePercentSum]);
 
   // Initialize with one empty tag per category
   useEffect(() => {
@@ -48,6 +142,25 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
     setGenrePercents(prev => ({ ...prev, [tagId]: value }));
   }, []);
 
+  // Toggle handler for TagBrowser
+  const handleTagToggle = useCallback((tagId, category) => {
+    setSelectedTags(prev => {
+      const exists = prev.some(t => t.id === tagId);
+      if (exists) {
+        // Remove the tag
+        return prev.filter(t => t.id !== tagId);
+      } else {
+        // For single-select categories, replace existing selection
+        if (!MULTI_SELECT_CATEGORIES.includes(category)) {
+          // Remove any existing tag in this category, then add the new one
+          return [...prev.filter(t => t.category !== category), { id: tagId, category }];
+        }
+        // For multi-select categories, just add the tag
+        return [...prev, { id: tagId, category }];
+      }
+    });
+  }, []);
+
   const handleCalculate = () => {
     const tagInputs = collectTagInputs(
       selectedTags.filter(t => t.id),
@@ -64,11 +177,32 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
   };
 
   const handleReset = () => {
-    const initialTags = categories.map(cat => ({ id: '', category: cat }));
-    setSelectedTags(initialTags);
+    if (inputMode === 'dropdown') {
+      const initialTags = categories.map(cat => ({ id: '', category: cat }));
+      setSelectedTags(initialTags);
+    } else {
+      setSelectedTags([]);
+    }
     setGenrePercents({});
     setResults(null);
   };
+
+  // Auto-calculate in browser mode when validation passes
+  useEffect(() => {
+    if (inputMode === 'browser') {
+      if (validation.isValid) {
+        const tagInputs = collectTagInputs(
+          selectedTags.filter(t => t.id),
+          genrePercents
+        );
+        const result = calculateSynergy(tagInputs);
+        setResults(result);
+      } else {
+        // Clear results when validation fails
+        setResults(null);
+      }
+    }
+  }, [inputMode, validation.isValid, selectedTags, genrePercents, calculateSynergy]);
 
   const handleTransfer = () => {
     if (onTransferToAdvertisers) {
@@ -97,29 +231,90 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
       <Card className="builder-card">
         <div className="card-header">
           <h3>Check Compatibility</h3>
-          <button className="reset-btn" onClick={handleReset}>Reset</button>
+          <div className="header-controls">
+            <button
+              className="mode-toggle-btn"
+              onClick={() => setInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
+            >
+              {inputMode === 'dropdown' ? 'Use Browse Mode' : 'Use Dropdown Mode'}
+            </button>
+            <button className="reset-btn" onClick={handleReset}>Reset</button>
+          </div>
         </div>
         <p className="subtitle">Select story elements to see how well they fit together.</p>
         
-        <div id="selectors-container-synergy">
-          {categories.map(category => (
-            <CategorySelector
-              key={category}
-              category={category}
-              selectedTags={selectedTags}
-              onTagsChange={setSelectedTags}
-              genrePercents={genrePercents}
-              onGenrePercentChange={handleGenrePercentChange}
-              context="synergy"
-            />
-          ))}
-        </div>
+        {inputMode === 'dropdown' ? (
+          <div id="selectors-container-synergy">
+            {categories.map(category => (
+              <CategorySelector
+                key={category}
+                category={category}
+                selectedTags={selectedTags}
+                onTagsChange={setSelectedTags}
+                genrePercents={genrePercents}
+                onGenrePercentChange={handleGenrePercentChange}
+                context="synergy"
+              />
+            ))}
+          </div>
+        ) : (
+          <TagBrowser
+            selectedTagIds={selectedTagIds}
+            onToggle={handleTagToggle}
+            variant="selected"
+            renderCategoryExtra={(category) => {
+              if (category === 'Genre' && selectedGenres.length > 1) {
+                return (
+                  <div className="browser-genre-sliders">
+                    {selectedGenres.map(genre => (
+                      <GenreSlider
+                        key={genre.id}
+                        tagId={genre.id}
+                        tagName={genre.name}
+                        value={genrePercents[genre.id] ?? 100}
+                        onChange={handleGenrePercentChange}
+                      />
+                    ))}
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+        )}
         
-        <div className="action-area">
-          <button className="analyze-btn" onClick={handleCalculate}>
-            Check Compatibility
-          </button>
-        </div>
+        {inputMode === 'dropdown' ? (
+          <div className="action-area">
+            <button 
+              className="analyze-btn" 
+              onClick={handleCalculate}
+              disabled={!validation.isValid}
+              title={!validation.isValid ? `Missing: ${validation.missing.join(', ')}` : ''}
+            >
+              Check Compatibility
+            </button>
+            {!validation.isValid && (
+              <p className="subtitle" style={{ marginTop: '10px', color: 'var(--text-muted)' }}>
+                Required: {validation.missing.join(', ')}
+              </p>
+            )}
+          </div>
+        ) : (
+          !validation.isValid && (
+            <div className="validation-messages" style={{ marginTop: '15px' }}>
+              {validation.missing.length > 0 && (
+                <p className="subtitle" style={{ color: 'var(--text-muted)', margin: '0 0 5px 0' }}>
+                  Select: {validation.missing.join(', ')}
+                </p>
+              )}
+              {!validation.hasValidPercents && selectedGenres.length > 1 && (
+                <p className="subtitle" style={{ color: 'var(--danger)', margin: 0 }}>
+                  Genre weights must total 100% (currently {genrePercentSum}%)
+                </p>
+              )}
+            </div>
+          )
+        )}
       </Card>
 
       {results && (

@@ -8,9 +8,10 @@ import { useApp } from '../../context/AppContext';
  * 
  * @param {Set<string>} selectedTagIds - Currently selected tag IDs
  * @param {function} onToggle - Callback when a card is clicked: (tagId, category) => void
- * @param {'locked' | 'excluded'} variant - Controls styling (gold vs red accents)
+ * @param {'locked' | 'excluded' | 'selected'} variant - Controls styling (gold vs red vs green accents)
+ * @param {function} renderCategoryExtra - Optional render prop: (category) => ReactNode for extra content inside accordion
  */
-function TagBrowser({ selectedTagIds, onToggle, variant = 'locked' }) {
+function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', renderCategoryExtra = null }) {
   const { categories, getTagsByCategory } = useApp();
   
   // Track which categories are expanded (all start collapsed)
@@ -68,9 +69,12 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked' }) {
             <div className={`tag-browser-cards ${isExpanded ? '' : 'collapsed'}`}>
               {tagsInCategory.map(tag => {
                 const isSelected = selectedTagIds.has(tag.id);
-                const selectedClass = isSelected 
-                  ? (variant === 'locked' ? 'selected-locked' : 'selected-excluded')
-                  : '';
+                let selectedClass = '';
+                if (isSelected) {
+                  if (variant === 'locked') selectedClass = 'selected-locked';
+                  else if (variant === 'excluded') selectedClass = 'selected-excluded';
+                  else if (variant === 'selected') selectedClass = 'selected-selected';
+                }
 
                 return (
                   <button
@@ -83,6 +87,7 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked' }) {
                   </button>
                 );
               })}
+              {renderCategoryExtra && renderCategoryExtra(category)}
             </div>
           </div>
         );
