@@ -1686,6 +1686,29 @@ input[type="text"] {
     line-height: 1.5;
 }
 
+.modal-path-hint {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.modal-path-hint code {
+    display: block;
+    margin-top: 6px;
+    padding: 8px;
+    background: var(--bg-primary);
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.8rem;
+    word-break: break-all;
+    color: var(--text-primary);
+}
+
 .modal-error {
     background: rgba(255, 95, 95, 0.1);
     border: 1px solid var(--danger);

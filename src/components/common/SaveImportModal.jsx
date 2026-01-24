@@ -82,6 +82,11 @@ function SaveImportModal({ isOpen, onClose }) {
             Import your Hollywood Animal save file to filter tags to only those you've researched.
             Your save data stays in your browser - nothing is uploaded to any server.
           </p>
+          
+          <p className="modal-path-hint">
+            <strong>Windows save location:</strong><br />
+            <code>C:\Users\&lt;username&gt;\AppData\LocalLow\Weappy\Hollywood Animal\Saves\Profiles\0</code>
+          </p>
 
           {error && (
             <div className="modal-error">
