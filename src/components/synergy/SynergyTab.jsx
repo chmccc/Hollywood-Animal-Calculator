@@ -196,17 +196,40 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
     setGenrePercents(prev => ({ ...prev, [tagId]: value }));
   }, []);
 
+  // Categories that count toward the 9-element limit (excludes Genre, Setting, and Protagonist)
+  const ELEMENT_CATEGORIES = ['Antagonist', 'Supporting Character', 'Theme & Event', 'Finale'];
+  const MAX_ELEMENTS = 9;
+
   // Toggle handler for TagBrowser
   const handleTagToggle = useCallback((tagId, category) => {
     setSelectedTags(prev => {
       const exists = prev.some(t => t.id === tagId);
+      
       if (exists) {
-        // Remove the tag
+        // Remove the tag - always allowed
         return prev.filter(t => t.id !== tagId);
       } else {
+        // Check if this is an element category (not Genre/Setting) and we're at max
+        if (ELEMENT_CATEGORIES.includes(category)) {
+          const currentElementCount = prev.filter(t => 
+            t.id && ELEMENT_CATEGORIES.includes(t.category)
+          ).length;
+          
+          // For SINGLE-SELECT element categories (Antagonist, Finale), 
+          // we're replacing not adding, so allow it even at max.
+          // For MULTI-SELECT categories (Supporting Character, Theme & Event), we're truly adding.
+          const isSingleSelect = !MULTI_SELECT_CATEGORIES.includes(category);
+          const hasExistingInCategory = prev.some(t => t.category === category && t.id);
+          const isReplacing = isSingleSelect && hasExistingInCategory;
+          
+          // Block if we're at max AND not replacing an existing single-select selection
+          if (currentElementCount >= MAX_ELEMENTS && !isReplacing) {
+            return prev; // Don't add, at max
+          }
+        }
+        
         // For single-select categories, replace existing selection
         if (!MULTI_SELECT_CATEGORIES.includes(category)) {
-          // Remove any existing tag in this category, then add the new one
           return [...prev.filter(t => t.category !== category), { id: tagId, category }];
         }
         // For multi-select categories, just add the tag
@@ -389,6 +412,8 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                 variant="selected"
                 scoreDeltas={scoreDeltas}
                 showDeltas={true}
+                optionalCategories={ELEMENT_CATEGORIES}
+                maxOptionalTags={MAX_ELEMENTS}
                 renderCategoryExtra={(category) => {
                   if (category === 'Genre' && selectedGenres.length > 1) {
                     return (

@@ -1478,6 +1478,44 @@ input[type="text"] {
     border-color: #b35555;
 }
 
+/* Disabled tag when optional categories at max */
+.tag-browser-card.tag-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.tag-browser-card.tag-disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Disabled category header indicator */
+.tag-browser-accordion-header.category-disabled {
+    opacity: 0.7;
+}
+
+/* Disabled badge for categories at max */
+.accordion-badge.disabled {
+    background: var(--text-muted);
+    color: var(--card-bg);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+}
+
+/* Warning message at top of tag browser */
+.tag-browser-warning {
+    background: rgba(255, 159, 10, 0.15);
+    border: 1px solid var(--moderate);
+    color: var(--moderate);
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
 /* ========================================= */
 /* --- BROWSER MODE GENRE SLIDERS --- */
 /* ========================================= */

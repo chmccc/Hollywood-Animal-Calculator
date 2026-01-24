@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { MULTI_SELECT_CATEGORIES } from '../../data/gameData';
 
 // Format delta value for display
 function formatDelta(value) {
@@ -29,9 +30,11 @@ function getDeltaClass(value) {
  * @param {Object} scoreDeltas - Optional map of tagId -> { artDelta: number, comDelta: number }
  * @param {boolean} showDeltas - Whether to show the delta row (for synergy mode)
  * @param {function} renderCategoryExtra - Optional render prop: (category) => ReactNode for extra content inside accordion
+ * @param {string[]} optionalCategories - Optional list of category names that count toward the optional tag limit
+ * @param {number} maxOptionalTags - Optional maximum number of tags allowed from optional categories (default: 10)
  */
-function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas = {}, showDeltas = false, renderCategoryExtra = null }) {
-  const { categories, getTagsByCategory } = useApp();
+function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas = {}, showDeltas = false, renderCategoryExtra = null, optionalCategories = [], maxOptionalTags = 10 }) {
+  const { categories, getTagsByCategory, tags } = useApp();
   
   // Track which categories are expanded (all start collapsed)
   const [expandedCategories, setExpandedCategories] = useState(() => 
@@ -60,8 +63,24 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
     return tagsInCategory.filter(tag => selectedTagIds.has(tag.id)).length;
   };
 
+  // Count total selected tags in optional categories
+  const optionalTagCount = optionalCategories.length > 0 
+    ? Array.from(selectedTagIds).filter(tagId => {
+        const tag = tags[tagId];
+        return tag && optionalCategories.includes(tag.category);
+      }).length
+    : 0;
+
+  // Check if element categories are at max capacity
+  const isAtMaxElements = optionalCategories.length > 0 && optionalTagCount >= maxOptionalTags;
+
   return (
     <div className="tag-browser-container">
+      {isAtMaxElements && (
+        <div className="tag-browser-warning">
+          Maximum {maxOptionalTags} elements selected
+        </div>
+      )}
       {categories.map(category => {
         const tagsInCategory = getTagsByCategory(category);
         
@@ -70,10 +89,17 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
         const isExpanded = expandedCategories.has(category);
         const selectedCount = getSelectedCount(category);
 
+        // Check if this category is an element category and at max (for disabling)
+        const isCategoryElement = optionalCategories.includes(category);
+        // Single-select categories can still swap when at max (if they have a selection)
+        const isSingleSelect = !MULTI_SELECT_CATEGORIES.includes(category);
+        const canSwapInCategory = isSingleSelect && selectedCount > 0;
+        const isCategoryDisabled = isCategoryElement && isAtMaxElements && !canSwapInCategory;
+
         return (
           <div key={category} className="tag-browser-section">
             <button
-              className={`tag-browser-accordion-header ${isExpanded ? 'expanded' : ''}`}
+              className={`tag-browser-accordion-header ${isExpanded ? 'expanded' : ''} ${isCategoryDisabled ? 'category-disabled' : ''}`}
               onClick={() => toggleCategory(category)}
               type="button"
             >
@@ -81,6 +107,9 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                 {category}
                 {selectedCount > 0 && (
                   <span className={`accordion-badge ${variant}`}>{selectedCount}</span>
+                )}
+                {isCategoryDisabled && selectedCount === 0 && (
+                  <span className="accordion-badge disabled">max</span>
                 )}
               </span>
               <span className="accordion-icon">{isExpanded ? '−' : '+'}</span>
@@ -115,12 +144,17 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                   }
                 }
 
+                // Disable if category is disabled (at max, can't swap) and tag is not selected
+                // Note: isCategoryDisabled already accounts for single-select swap possibility
+                const isTagDisabled = isCategoryDisabled && !isSelected;
+
                 return (
                   <button
                     key={tag.id}
-                    className={`tag-browser-card ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''}`.trim()}
-                    onClick={() => handleCardClick(tag.id, category)}
+                    className={`tag-browser-card ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${isTagDisabled ? 'tag-disabled' : ''}`.trim()}
+                    onClick={() => !isTagDisabled && handleCardClick(tag.id, category)}
                     type="button"
+                    disabled={isTagDisabled}
                   >
                     <span className="tag-name">{tag.name}</span>
                     {showDeltas && (
