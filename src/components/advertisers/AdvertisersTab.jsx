@@ -110,125 +110,132 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
 
   return (
     <div id="tab-advertisers" className="tab-content">
-      <Card className="search-card">
-        <h3>Quick Search</h3>
-        <SearchBar
-          onSelect={handleSearchSelect}
-          placeholder="Type to find a tag (e.g., 'Action', 'Cowboy')..."
-        />
-      </Card>
-
-      <Card className="score-card">
-        <div className="card-header">
-          <h3>Movie Scores</h3>
-          <span className="score-help">0 - 10</span>
-        </div>
-        <div className="score-controls-wrapper">
-          <Slider
-            label="Commercial"
-            value={comScore}
-            onChange={setComScore}
-            min={0}
-            max={10}
-            step={0.1}
-            sliderClass="com-slider"
-            color="#d4af37"
-          />
-          <Slider
-            label="Art"
-            value={artScore}
-            onChange={setArtScore}
-            min={0}
-            max={10}
-            step={0.1}
-            sliderClass="art-slider"
-            color="#a0a0ff"
-          />
-        </div>
-      </Card>
-
-      <Card className="builder-card">
-        <div className="card-header">
-          <h3>Build Your Script</h3>
-          <button className="reset-btn" onClick={handleReset}>Reset</button>
-        </div>
-        <p className="subtitle">Select tags manually or use the search bar above. Add multiple genres to adjust their influence.</p>
-        
-        <div id="selectors-container-advertisers">
-          {categories.map(category => (
-            <CategorySelector
-              key={category}
-              category={category}
-              selectedTags={selectedTags}
-              onTagsChange={setSelectedTags}
-              genrePercents={genrePercents}
-              onGenrePercentChange={handleGenrePercentChange}
-              context="advertisers"
+      <div className="split-layout">
+        {/* Left Column - Form */}
+        <div className="split-layout-left">
+          <Card className="search-card">
+            <h3>Quick Search</h3>
+            <SearchBar
+              onSelect={handleSearchSelect}
+              placeholder="Type to find a tag (e.g., 'Action', 'Cowboy')..."
             />
-          ))}
-        </div>
-        
-        <div className="action-area">
-          <button className="analyze-btn" onClick={handleAnalyze}>
-            Analyse
-          </button>
-        </div>
-      </Card>
+          </Card>
 
-      {/* Distribution Calculator (always visible) */}
-      <DistributionCalculator
-        comScore={comScore}
-        ownedScreenings={ownedScreenings}
-        onOwnedScreeningsChange={setOwnedScreenings}
-        distributionResults={distributionResults}
-      />
+          <Card className="score-card">
+            <div className="card-header">
+              <h3>Movie Scores</h3>
+              <span className="score-help">0 - 10</span>
+            </div>
+            <div className="score-controls-wrapper">
+              <Slider
+                label="Commercial"
+                value={comScore}
+                onChange={setComScore}
+                min={0}
+                max={10}
+                step={0.1}
+                sliderClass="com-slider"
+                color="#d4af37"
+              />
+              <Slider
+                label="Art"
+                value={artScore}
+                onChange={setArtScore}
+                min={0}
+                max={10}
+                step={0.1}
+                sliderClass="art-slider"
+                color="#a0a0ff"
+              />
+            </div>
+          </Card>
 
-      {/* Results */}
-      {results && (
-        <div id="results-advertisers" className="results-container">
-          <TargetAudience
-            targetAudiences={results.targetAudiences}
-            thresholds={results.thresholds}
-          />
-          
-          <HolidayList viableHolidays={results.viableHolidays} />
-          
-          <div className="results-row">
-            <AdvertiserResults
-              validAgents={results.validAgents}
-              movieLean={results.movieLean}
-              leanText={results.leanText}
-              hasTargetAudience={results.targetAudiences.length > 0}
-            />
+          <Card className="builder-card">
+            <div className="card-header">
+              <h3>Build Your Script</h3>
+              <button className="reset-btn" onClick={handleReset}>Reset</button>
+            </div>
+            <p className="subtitle">Select tags manually or use the search bar above. Add multiple genres to adjust their influence.</p>
             
-            <Card className="result-card strategy-card">
-              <h3>Recommended Advertisement Duration</h3>
-              <div id="campaignStrategyDisplay">
-                <div className="strategy-row">
-                  <div className="campaign-block pre">
-                    <span className="camp-title">Pre-Release</span>
-                    <span className="camp-value">{results.campaign.preDuration} wks</span>
-                  </div>
-                  <div className="campaign-block release">
-                    <span className="camp-title">Release</span>
-                    <span className="camp-value">{results.campaign.releaseDuration} wks</span>
-                  </div>
-                  <div 
-                    className="campaign-block post" 
-                    style={{ opacity: results.campaign.postDuration > 0 ? 1 : 0.3 }}
-                  >
-                    <span className="camp-title">Post-Release</span>
-                    <span className="camp-value">{results.campaign.postDuration} wks</span>
-                  </div>
-                </div>
-                <div className="total-duration-footer">
-                  Total Duration: <strong style={{ color: '#fff' }}>{results.campaign.totalWeeks} Weeks</strong>
-                </div>
-              </div>
-            </Card>
-          </div>
+            <div id="selectors-container-advertisers">
+              {categories.map(category => (
+                <CategorySelector
+                  key={category}
+                  category={category}
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                  genrePercents={genrePercents}
+                  onGenrePercentChange={handleGenrePercentChange}
+                  context="advertisers"
+                />
+              ))}
+            </div>
+            
+            <div className="action-area">
+              <button className="analyze-btn" onClick={handleAnalyze}>
+                Analyse
+              </button>
+            </div>
+          </Card>
+
+          {/* Distribution Calculator (always visible) */}
+          <DistributionCalculator
+            comScore={comScore}
+            ownedScreenings={ownedScreenings}
+            onOwnedScreeningsChange={setOwnedScreenings}
+            distributionResults={distributionResults}
+          />
         </div>
-      )}
+
+        {/* Right Column - Results */}
+        <div className="split-layout-right">
+          {results && (
+            <div id="results-advertisers" className="results-container">
+              <TargetAudience
+                targetAudiences={results.targetAudiences}
+                thresholds={results.thresholds}
+              />
+              
+              <HolidayList viableHolidays={results.viableHolidays} />
+              
+              <div className="results-row">
+                <AdvertiserResults
+                  validAgents={results.validAgents}
+                  movieLean={results.movieLean}
+                  leanText={results.leanText}
+                  hasTargetAudience={results.targetAudiences.length > 0}
+                />
+                
+                <Card className="result-card strategy-card">
+                  <h3>Recommended Advertisement Duration</h3>
+                  <div id="campaignStrategyDisplay">
+                    <div className="strategy-row">
+                      <div className="campaign-block pre">
+                        <span className="camp-title">Pre-Release</span>
+                        <span className="camp-value">{results.campaign.preDuration} wks</span>
+                      </div>
+                      <div className="campaign-block release">
+                        <span className="camp-title">Release</span>
+                        <span className="camp-value">{results.campaign.releaseDuration} wks</span>
+                      </div>
+                      <div 
+                        className="campaign-block post" 
+                        style={{ opacity: results.campaign.postDuration > 0 ? 1 : 0.3 }}
+                      >
+                        <span className="camp-title">Post-Release</span>
+                        <span className="camp-value">{results.campaign.postDuration} wks</span>
+                      </div>
+                    </div>
+                    <div className="total-duration-footer">
+                      Total Duration: <strong style={{ color: '#fff' }}>{results.campaign.totalWeeks} Weeks</strong>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

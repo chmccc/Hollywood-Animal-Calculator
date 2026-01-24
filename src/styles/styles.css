@@ -31,7 +31,7 @@ body {
 
 /* --- HEADER --- */
 header {
-    margin-bottom: 30px;
+    margin-bottom: 15px;
 }
 
 .header-content {
@@ -39,15 +39,30 @@ header {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
+    gap: 10px;
+}
+
+.logo-area {
+    display: flex;
+    align-items: baseline;
     gap: 15px;
+    flex-wrap: wrap;
 }
 
 h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 800;
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 2px;
+}
+
+.header-subtitle {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .accent { color: var(--accent); }
@@ -997,7 +1012,6 @@ input[type="text"] {
 
 /* Helpers */
 .hidden { display: none; }
-footer { text-align: center; color: #555; font-size: 0.8rem; margin-top: 40px; }
 
 @media (max-width: 800px) {
     #selectors-container-advertisers, #selectors-container-synergy, #selectors-container-generator, #selectors-container-excluded { grid-template-columns: 1fr; }
@@ -1788,4 +1802,106 @@ footer { text-align: center; color: #555; font-size: 0.8rem; margin-top: 40px; }
     padding: 4px 10px;
     border-radius: 10px;
     font-weight: 600;
+}
+
+/* ========================================= */
+/* --- SPLIT LAYOUT FOR LARGE SCREENS --- */
+/* ========================================= */
+
+/* Default: single column stacked layout (small screens) */
+.split-layout {
+    display: flex;
+    flex-direction: column;
+}
+
+.split-layout-left,
+.split-layout-right {
+    width: 100%;
+}
+
+/* Large screens: two-column side-by-side layout */
+@media (min-width: 1200px) {
+    html, body {
+        overflow: hidden;
+        height: 100vh;
+    }
+
+    .main-wrapper {
+        max-width: 1800px;
+        padding-bottom: 0;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .tab-content {
+        height: 100%;
+    }
+
+    .split-layout {
+        display: grid;
+        grid-template-columns: 3fr 2fr;
+        gap: 30px;
+        height: 100%;
+        align-items: start;
+    }
+
+    .split-layout-left,
+    .split-layout-right {
+        overflow-y: auto;
+        height: 100%;
+        padding-right: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    /* Remove margin-bottom from last card in each column */
+    .split-layout-left > .card:last-child,
+    .split-layout-right > .card:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Adjust results container in split layout */
+    .split-layout-right .results-container {
+        margin-top: 0;
+        gap: 15px;
+    }
+
+    /* Custom scrollbar for split columns */
+    .split-layout-left::-webkit-scrollbar,
+    .split-layout-right::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .split-layout-left::-webkit-scrollbar-track,
+    .split-layout-right::-webkit-scrollbar-track {
+        background: var(--bg-color);
+        border-radius: 4px;
+    }
+
+    .split-layout-left::-webkit-scrollbar-thumb,
+    .split-layout-right::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+    }
+
+    .split-layout-left::-webkit-scrollbar-thumb:hover,
+    .split-layout-right::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    /* Firefox scrollbar styling */
+    .split-layout-left,
+    .split-layout-right {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) var(--bg-color);
+    }
 }

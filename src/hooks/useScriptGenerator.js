@@ -158,6 +158,8 @@ export function useScriptGenerator() {
     const maxPotential = Math.max(0, Math.max(rawCom, rawArt));
     
     const finalMovieScore = Math.min(tagCap, maxPotential);
+    const displayCom = Math.min(tagCap, Math.max(0, rawCom));
+    const displayArt = Math.min(tagCap, Math.max(0, rawArt));
 
     return {
       tags: bestSet,
@@ -165,7 +167,9 @@ export function useScriptGenerator() {
         avgComp: bestStats.rawAverage,
         synergySum: bestStats.totalScore,
         maxScriptQuality: maxScriptQual,
-        movieScore: finalMovieScore.toFixed(1)
+        movieScore: finalMovieScore.toFixed(1),
+        comScore: displayCom,
+        artScore: displayArt
       },
       uniqueId: Date.now() + Math.random().toString()
     };

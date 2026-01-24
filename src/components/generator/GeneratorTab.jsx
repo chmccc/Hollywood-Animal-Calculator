@@ -1,11 +1,13 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useScriptGenerator } from '../../hooks/useScriptGenerator';
+import { useAudienceAnalysis } from '../../hooks/useAudienceAnalysis';
 import Card from '../common/Card';
 import Slider from '../common/Slider';
 import CategorySelector from '../common/CategorySelector';
 import TagBrowser from '../common/TagBrowser';
 import ScriptCard from './ScriptCard';
+import TargetAudience from '../advertisers/TargetAudience';
 import { collectTagInputs } from '../../utils/tagHelpers';
 
 function GeneratorTab({ onTransferToAdvertisers = null }) {
@@ -19,6 +21,7 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     exportPinnedScripts,
     importPinnedScripts
   } = useScriptGenerator();
+  const { analyzeMovie } = useAudienceAnalysis();
 
   const [targetComp, setTargetComp] = useState(4.0);
   const [targetScore, setTargetScore] = useState(6);
@@ -53,6 +56,14 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     new Set(excludedTags.filter(t => t.id).map(t => t.id)), 
     [excludedTags]
   );
+
+  // Calculate audience data for the top generated script
+  const topScriptAudienceData = useMemo(() => {
+    if (generatedScripts.length === 0) return null;
+    const topScript = generatedScripts[0];
+    if (!topScript.stats.comScore || !topScript.stats.artScore) return null;
+    return analyzeMovie(topScript.tags, topScript.stats.comScore, topScript.stats.artScore);
+  }, [generatedScripts, analyzeMovie]);
 
   const handleGenrePercentChange = useCallback((tagId, value) => {
     setGenrePercents(prev => ({ ...prev, [tagId]: value }));
@@ -167,175 +178,189 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
 
   return (
     <div id="tab-generator" className="tab-content">
-      <Card className="builder-card">
-        <div className="card-header">
-          <h3>Generator Settings</h3>
-          {ownedTagIds && (
-            <span className="save-indicator">
-              Using {ownedTagIds.size} tags from save
-            </span>
-          )}
-        </div>
-
-        <div className="score-controls-wrapper">
-          <Slider
-            label="Target Average Compatibility"
-            value={targetComp}
-            onChange={setTargetComp}
-            min={1}
-            max={5}
-            step={0.1}
-            sliderClass="com-slider"
-            color="#4cd964"
-            subtitle="The generator will attempt to find a script matching or exceeding this compatibility score."
-          />
-          <Slider
-            label="Target Movie Score"
-            value={targetScore}
-            onChange={setTargetScore}
-            min={6}
-            max={10}
-            step={1}
-            sliderClass="art-slider"
-            color="#d4af37"
-            subtitle={<span style={{ color: 'var(--accent)' }}>{getRequiredTagsText()}</span>}
-          />
-        </div>
-
-        <div className="divider-line"></div>
-
-        {/* Locked Elements */}
-        <div className="card-header">
-          <h3>Locked Elements</h3>
-          <button className="reset-btn" onClick={handleResetLocks}>Reset Locks</button>
-        </div>
-        <p className="subtitle">Select specific tags you <strong>MUST</strong> have in the script.</p>
-        
-        <div id="selectors-container-generator">
-          {categories.map(category => (
-            <CategorySelector
-              key={category}
-              category={category}
-              selectedTags={lockedTags}
-              onTagsChange={setLockedTags}
-              genrePercents={genrePercents}
-              onGenrePercentChange={handleGenrePercentChange}
-              context="generator"
-            />
-          ))}
-        </div>
-
-        <div className="divider-line"></div>
-
-        {/* Excluded Elements */}
-        <div className="card-header">
-          <h3 style={{ color: 'var(--danger)' }}>Excluded Elements</h3>
-          <div className="header-controls">
-            <button
-              className="mode-toggle-btn"
-              onClick={() => setExcludedInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
-            >
-              {excludedInputMode === 'dropdown' ? 'Use Browse Mode' : 'Use Dropdown Mode'}
-            </button>
-            <button className="save-btn" onClick={handleSaveExclusions}>Save Exclusions</button>
-            <button className="reset-btn" onClick={handleResetExcluded}>Reset Bans</button>
-          </div>
-        </div>
-        <p className="subtitle">Select tags to <strong>BAN</strong> (e.g., due to "The Code"). The generator will never pick these.</p>
-
-        {excludedInputMode === 'dropdown' ? (
-          <div id="selectors-container-excluded">
-            {categories.map(category => (
-              <CategorySelector
-                key={`excluded-${category}`}
-                category={category}
-                selectedTags={excludedTags}
-                onTagsChange={setExcludedTags}
-                context="excluded"
-                isExcluded={true}
-              />
-            ))}
-          </div>
-        ) : (
-          <TagBrowser
-            selectedTagIds={excludedTagIds}
-            onToggle={handleExcludedTagToggle}
-            variant="excluded"
-          />
-        )}
-
-        <div className="action-area">
-          <button className="analyze-btn" onClick={handleGenerate}>
-            Generate Scripts
-          </button>
-        </div>
-      </Card>
-
-      {/* Pinned Scripts */}
-      <div id="pinned-scripts-container" className="results-container">
-        <div className="pinned-header-row">
-          <div className="section-title" style={{ marginBottom: 0 }}>
-            <h3 style={{ color: 'var(--accent)', margin: 0 }}>Pinned Scripts</h3>
-          </div>
-          <div className="file-controls">
-            <button className="file-action-btn" onClick={handleExport} title="Download Pinned Scripts">
-              <span>⬇ Save</span>
-            </button>
-            <button className="file-action-btn" onClick={handleImportClick} title="Upload JSON File">
-              <span>⬆ Load</span>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden-file-input"
-              accept=".json"
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
-          </div>
-        </div>
-        <div id="pinnedResultsList" className="script-list">
-          {pinnedScripts.length === 0 ? (
-            <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem', padding: '10px 0' }}>
-              No pinned scripts yet.
+      <div className="split-layout">
+        {/* Left Column - Form */}
+        <div className="split-layout-left">
+          <Card className="builder-card">
+            <div className="card-header">
+              <h3>Generator Settings</h3>
+              {ownedTagIds && (
+                <span className="save-indicator">
+                  Using {ownedTagIds.size} tags from save
+                </span>
+              )}
             </div>
-          ) : (
-            pinnedScripts.map(script => (
-              <ScriptCard
-                key={script.uniqueId}
-                script={script}
-                isPinned={true}
-                onTogglePin={() => togglePin(script.uniqueId)}
-                onNameChange={(name) => updateScriptName(script.uniqueId, name)}
-                onTransfer={onTransferToAdvertisers}
-                lockedTagIds={lockedTagIds}
+
+            <div className="score-controls-wrapper">
+              <Slider
+                label="Target Average Compatibility"
+                value={targetComp}
+                onChange={setTargetComp}
+                min={1}
+                max={5}
+                step={0.1}
+                sliderClass="com-slider"
+                color="#4cd964"
+                subtitle="The generator will attempt to find a script matching or exceeding this compatibility score."
               />
-            ))
+              <Slider
+                label="Target Movie Score"
+                value={targetScore}
+                onChange={setTargetScore}
+                min={6}
+                max={10}
+                step={1}
+                sliderClass="art-slider"
+                color="#d4af37"
+                subtitle={<span style={{ color: 'var(--accent)' }}>{getRequiredTagsText()}</span>}
+              />
+            </div>
+
+            <div className="divider-line"></div>
+
+            {/* Locked Elements */}
+            <div className="card-header">
+              <h3>Locked Elements</h3>
+              <button className="reset-btn" onClick={handleResetLocks}>Reset Locks</button>
+            </div>
+            <p className="subtitle">Select specific tags you <strong>MUST</strong> have in the script.</p>
+            
+            <div id="selectors-container-generator">
+              {categories.map(category => (
+                <CategorySelector
+                  key={category}
+                  category={category}
+                  selectedTags={lockedTags}
+                  onTagsChange={setLockedTags}
+                  genrePercents={genrePercents}
+                  onGenrePercentChange={handleGenrePercentChange}
+                  context="generator"
+                />
+              ))}
+            </div>
+
+            <div className="divider-line"></div>
+
+            {/* Excluded Elements */}
+            <div className="card-header">
+              <h3 style={{ color: 'var(--danger)' }}>Excluded Elements</h3>
+              <div className="header-controls">
+                <button
+                  className="mode-toggle-btn"
+                  onClick={() => setExcludedInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
+                >
+                  {excludedInputMode === 'dropdown' ? 'Use Browse Mode' : 'Use Dropdown Mode'}
+                </button>
+                <button className="save-btn" onClick={handleSaveExclusions}>Save Exclusions</button>
+                <button className="reset-btn" onClick={handleResetExcluded}>Reset Bans</button>
+              </div>
+            </div>
+            <p className="subtitle">Select tags to <strong>BAN</strong> (e.g., due to "The Code"). The generator will never pick these.</p>
+
+            {excludedInputMode === 'dropdown' ? (
+              <div id="selectors-container-excluded">
+                {categories.map(category => (
+                  <CategorySelector
+                    key={`excluded-${category}`}
+                    category={category}
+                    selectedTags={excludedTags}
+                    onTagsChange={setExcludedTags}
+                    context="excluded"
+                    isExcluded={true}
+                  />
+                ))}
+              </div>
+            ) : (
+              <TagBrowser
+                selectedTagIds={excludedTagIds}
+                onToggle={handleExcludedTagToggle}
+                variant="excluded"
+              />
+            )}
+
+            <div className="action-area">
+              <button className="analyze-btn" onClick={handleGenerate}>
+                Generate Scripts
+              </button>
+            </div>
+          </Card>
+        </div>
+
+        {/* Right Column - Results */}
+        <div className="split-layout-right">
+          {/* Pinned Scripts */}
+          <div id="pinned-scripts-container" className="results-container">
+            <div className="pinned-header-row">
+              <div className="section-title" style={{ marginBottom: 0 }}>
+                <h3 style={{ color: 'var(--accent)', margin: 0 }}>Pinned Scripts</h3>
+              </div>
+              <div className="file-controls">
+                <button className="file-action-btn" onClick={handleExport} title="Download Pinned Scripts">
+                  <span>⬇ Save</span>
+                </button>
+                <button className="file-action-btn" onClick={handleImportClick} title="Upload JSON File">
+                  <span>⬆ Load</span>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden-file-input"
+                  accept=".json"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            </div>
+            <div id="pinnedResultsList" className="script-list">
+              {pinnedScripts.length === 0 ? (
+                <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem', padding: '10px 0' }}>
+                  No pinned scripts yet.
+                </div>
+              ) : (
+                pinnedScripts.map(script => (
+                  <ScriptCard
+                    key={script.uniqueId}
+                    script={script}
+                    isPinned={true}
+                    onTogglePin={() => togglePin(script.uniqueId)}
+                    onNameChange={(name) => updateScriptName(script.uniqueId, name)}
+                    onTransfer={onTransferToAdvertisers}
+                    lockedTagIds={lockedTagIds}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Generated Scripts */}
+          {generatedScripts.length > 0 && (
+            <div id="results-generator" className="results-container">
+              {topScriptAudienceData && (
+                <TargetAudience
+                  targetAudiences={topScriptAudienceData.targetAudiences}
+                  thresholds={topScriptAudienceData.thresholds}
+                />
+              )}
+              <div className="section-title">
+                <h3>Generated Options</h3>
+              </div>
+              <div id="generatorResultsList" className="script-list">
+                {generatedScripts.map(script => (
+                  <ScriptCard
+                    key={script.uniqueId}
+                    script={script}
+                    isPinned={pinnedScripts.some(p => String(p.uniqueId) === String(script.uniqueId))}
+                    onTogglePin={() => togglePin(script.uniqueId)}
+                    onTransfer={onTransferToAdvertisers}
+                    onExcludeTag={handleExcludeFromResult}
+                    lockedTagIds={lockedTagIds}
+                  />
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>
-
-      {/* Generated Scripts */}
-      {generatedScripts.length > 0 && (
-        <div id="results-generator" className="results-container">
-          <div className="section-title">
-            <h3>Generated Options</h3>
-          </div>
-          <div id="generatorResultsList" className="script-list">
-            {generatedScripts.map(script => (
-              <ScriptCard
-                key={script.uniqueId}
-                script={script}
-                isPinned={pinnedScripts.some(p => String(p.uniqueId) === String(script.uniqueId))}
-                onTogglePin={() => togglePin(script.uniqueId)}
-                onTransfer={onTransferToAdvertisers}
-                onExcludeTag={handleExcludeFromResult}
-                lockedTagIds={lockedTagIds}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

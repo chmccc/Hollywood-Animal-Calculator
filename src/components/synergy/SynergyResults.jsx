@@ -1,6 +1,7 @@
 import { formatScore, formatSimpleScore, formatFinalRating } from '../../utils/calculations';
+import TargetAudience from '../advertisers/TargetAudience';
 
-function SynergyResults({ results, onTransfer, onPin, isPinned = false }) {
+function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = false }) {
   const {
     rawAverage,
     totalScore,
@@ -129,6 +130,13 @@ function SynergyResults({ results, onTransfer, onPin, isPinned = false }) {
           )}
         </div>
       </div>
+
+      {audienceData && (
+        <TargetAudience
+          targetAudiences={audienceData.targetAudiences}
+          thresholds={audienceData.thresholds}
+        />
+      )}
 
       {(onTransfer || onPin) && (
         <div className="action-area" style={{ marginTop: 0, display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>

@@ -14,7 +14,7 @@ function Header() {
       <div className="header-content">
         <div className="logo-area">
           <h1>Hollywood <span className="accent">Animal</span></h1>
-          <h2>Calculator</h2>
+          <span className="header-subtitle">Calculator — Unofficial Tool</span>
         </div>
 
         <div className="header-controls">

@@ -59,10 +59,6 @@ function App() {
             />
           )}
         </div>
-        
-        <footer>
-          <p>Unofficial Tool for Hollywood Animal</p>
-        </footer>
       </div>
     </AppProvider>
   )

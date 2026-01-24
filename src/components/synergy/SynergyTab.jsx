@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useSynergyCalculation } from '../../hooks/useSynergyCalculation';
 import { useScriptGenerator } from '../../hooks/useScriptGenerator';
+import { useAudienceAnalysis } from '../../hooks/useAudienceAnalysis';
 import { MULTI_SELECT_CATEGORIES } from '../../data/gameData';
 import Card from '../common/Card';
 import SearchBar from '../common/SearchBar';
@@ -60,6 +61,7 @@ function GenreSlider({ tagId, tagName, value, onChange }) {
 function SynergyTab({ onTransferToAdvertisers = null }) {
   const { categories, isLoading, tags, compatibility } = useApp();
   const { calculateSynergy } = useSynergyCalculation();
+  const { analyzeMovie } = useAudienceAnalysis();
   const {
     pinnedScripts,
     pinScript,
@@ -75,6 +77,16 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
   const [initialized, setInitialized] = useState(false);
   const [inputMode, setInputMode] = useState('browser'); // 'dropdown' | 'browser'
   const fileInputRef = useRef(null);
+
+  // Calculate audience data when results are available
+  const audienceData = useMemo(() => {
+    if (!results) return null;
+    const tagInputs = collectTagInputs(
+      selectedTags.filter(t => t.id),
+      genrePercents
+    );
+    return analyzeMovie(tagInputs, results.displayCom, results.displayArt);
+  }, [results, selectedTags, genrePercents, analyzeMovie]);
 
   // Memoized Set for TagBrowser
   const selectedTagIds = useMemo(() => 
@@ -329,153 +341,163 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
 
   return (
     <div id="tab-synergy" className="tab-content active">
-      <Card className="search-card">
-        <h3>Quick Search</h3>
-        <SearchBar
-          onSelect={handleSearchSelect}
-          placeholder="Type to find a tag (e.g., 'Action', 'Cowboy')..."
-        />
-      </Card>
-
-      <Card className="builder-card">
-        <div className="card-header">
-          <h3>Check Compatibility</h3>
-          <div className="header-controls">
-            <button
-              className="mode-toggle-btn"
-              onClick={() => setInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
-            >
-              {inputMode === 'dropdown' ? 'Use Browse Mode' : 'Use Dropdown Mode'}
-            </button>
-            <button className="reset-btn" onClick={handleReset}>Reset</button>
-          </div>
-        </div>
-        <p className="subtitle">Select story elements to see how well they fit together.</p>
-        
-        {inputMode === 'dropdown' ? (
-          <div id="selectors-container-synergy">
-            {categories.map(category => (
-              <CategorySelector
-                key={category}
-                category={category}
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-                genrePercents={genrePercents}
-                onGenrePercentChange={handleGenrePercentChange}
-                context="synergy"
-                scoreDeltas={scoreDeltas}
-              />
-            ))}
-          </div>
-        ) : (
-          <TagBrowser
-            selectedTagIds={selectedTagIds}
-            onToggle={handleTagToggle}
-            variant="selected"
-            scoreDeltas={scoreDeltas}
-            renderCategoryExtra={(category) => {
-              if (category === 'Genre' && selectedGenres.length > 1) {
-                return (
-                  <div className="browser-genre-sliders">
-                    {selectedGenres.map(genre => (
-                      <GenreSlider
-                        key={genre.id}
-                        tagId={genre.id}
-                        tagName={genre.name}
-                        value={genrePercents[genre.id] ?? 50}
-                        onChange={handleGenrePercentChange}
-                      />
-                    ))}
-                  </div>
-                );
-              }
-              return null;
-            }}
-          />
-        )}
-        
-        {inputMode === 'dropdown' ? (
-          <div className="action-area">
-            <button 
-              className="analyze-btn" 
-              onClick={handleCalculate}
-              disabled={!validation.isValid}
-              title={!validation.isValid ? `Missing: ${validation.missing.join(', ')}` : ''}
-            >
-              Check Compatibility
-            </button>
-            {!validation.isValid && (
-              <p className="subtitle" style={{ marginTop: '10px', color: 'var(--text-muted)' }}>
-                Required: {validation.missing.join(', ')}
-              </p>
-            )}
-          </div>
-        ) : (
-          !validation.isValid && (
-            <div className="validation-messages" style={{ marginTop: '15px' }}>
-              {validation.missing.length > 0 && (
-                <p className="subtitle" style={{ color: 'var(--text-muted)', margin: '0 0 5px 0' }}>
-                  Select: {validation.missing.join(', ')}
-                </p>
-              )}
-              {!validation.hasValidPercents && selectedGenres.length > 1 && (
-                <p className="subtitle" style={{ color: 'var(--danger)', margin: 0 }}>
-                  Genre weights must total 100% (currently {genrePercentSum}%)
-                </p>
-              )}
-            </div>
-          )
-        )}
-      </Card>
-
-      {results && (
-        <SynergyResults 
-          results={results} 
-          onTransfer={onTransferToAdvertisers ? handleTransfer : null}
-          onPin={handlePinScript}
-        />
-      )}
-
-      {/* Pinned Scripts - shared with Generator tab */}
-      <div id="pinned-scripts-container" className="results-container">
-        <div className="pinned-header-row">
-          <div className="section-title" style={{ marginBottom: 0 }}>
-            <h3 style={{ color: 'var(--accent)', margin: 0 }}>Pinned Scripts</h3>
-          </div>
-          <div className="file-controls">
-            <button className="file-action-btn" onClick={handleExport} title="Download Pinned Scripts">
-              <span>⬇ Save</span>
-            </button>
-            <button className="file-action-btn" onClick={handleImportClick} title="Upload JSON File">
-              <span>⬆ Load</span>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden-file-input"
-              accept=".json"
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
+      <div className="split-layout">
+        {/* Left Column - Form */}
+        <div className="split-layout-left">
+          <Card className="search-card">
+            <h3>Quick Search</h3>
+            <SearchBar
+              onSelect={handleSearchSelect}
+              placeholder="Type to find a tag (e.g., 'Action', 'Cowboy')..."
             />
-          </div>
-        </div>
-        <div id="pinnedResultsList" className="script-list">
-          {pinnedScripts.length === 0 ? (
-            <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem', padding: '10px 0' }}>
-              No pinned scripts yet.
+          </Card>
+
+          <Card className="builder-card">
+            <div className="card-header">
+              <h3>Check Compatibility</h3>
+              <div className="header-controls">
+                <button
+                  className="mode-toggle-btn"
+                  onClick={() => setInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
+                >
+                  {inputMode === 'dropdown' ? 'Use Browse Mode' : 'Use Dropdown Mode'}
+                </button>
+                <button className="reset-btn" onClick={handleReset}>Reset</button>
+              </div>
             </div>
-          ) : (
-            pinnedScripts.map(script => (
-              <ScriptCard
-                key={script.uniqueId}
-                script={script}
-                isPinned={true}
-                onTogglePin={() => unpinScript(script.uniqueId)}
-                onNameChange={(name) => updateScriptName(script.uniqueId, name)}
-                onTransfer={onTransferToAdvertisers ? (s) => onTransferToAdvertisers(s) : null}
+            <p className="subtitle">Select story elements to see how well they fit together.</p>
+            
+            {inputMode === 'dropdown' ? (
+              <div id="selectors-container-synergy">
+                {categories.map(category => (
+                  <CategorySelector
+                    key={category}
+                    category={category}
+                    selectedTags={selectedTags}
+                    onTagsChange={setSelectedTags}
+                    genrePercents={genrePercents}
+                    onGenrePercentChange={handleGenrePercentChange}
+                    context="synergy"
+                    scoreDeltas={scoreDeltas}
+                  />
+                ))}
+              </div>
+            ) : (
+              <TagBrowser
+                selectedTagIds={selectedTagIds}
+                onToggle={handleTagToggle}
+                variant="selected"
+                scoreDeltas={scoreDeltas}
+                showDeltas={true}
+                renderCategoryExtra={(category) => {
+                  if (category === 'Genre' && selectedGenres.length > 1) {
+                    return (
+                      <div className="browser-genre-sliders">
+                        {selectedGenres.map(genre => (
+                          <GenreSlider
+                            key={genre.id}
+                            tagId={genre.id}
+                            tagName={genre.name}
+                            value={genrePercents[genre.id] ?? 50}
+                            onChange={handleGenrePercentChange}
+                          />
+                        ))}
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
               />
-            ))
+            )}
+            
+            {inputMode === 'dropdown' ? (
+              <div className="action-area">
+                <button 
+                  className="analyze-btn" 
+                  onClick={handleCalculate}
+                  disabled={!validation.isValid}
+                  title={!validation.isValid ? `Missing: ${validation.missing.join(', ')}` : ''}
+                >
+                  Check Compatibility
+                </button>
+                {!validation.isValid && (
+                  <p className="subtitle" style={{ marginTop: '10px', color: 'var(--text-muted)' }}>
+                    Required: {validation.missing.join(', ')}
+                  </p>
+                )}
+              </div>
+            ) : (
+              !validation.isValid && (
+                <div className="validation-messages" style={{ marginTop: '15px' }}>
+                  {validation.missing.length > 0 && (
+                    <p className="subtitle" style={{ color: 'var(--text-muted)', margin: '0 0 5px 0' }}>
+                      Select: {validation.missing.join(', ')}
+                    </p>
+                  )}
+                  {!validation.hasValidPercents && selectedGenres.length > 1 && (
+                    <p className="subtitle" style={{ color: 'var(--danger)', margin: 0 }}>
+                      Genre weights must total 100% (currently {genrePercentSum}%)
+                    </p>
+                  )}
+                </div>
+              )
+            )}
+          </Card>
+        </div>
+
+        {/* Right Column - Results */}
+        <div className="split-layout-right">
+          {results && (
+            <SynergyResults 
+              results={results} 
+              audienceData={audienceData}
+              onTransfer={onTransferToAdvertisers ? handleTransfer : null}
+              onPin={handlePinScript}
+            />
           )}
+
+          {/* Pinned Scripts - shared with Generator tab */}
+          <div id="pinned-scripts-container" className="results-container">
+            <div className="pinned-header-row">
+              <div className="section-title" style={{ marginBottom: 0 }}>
+                <h3 style={{ color: 'var(--accent)', margin: 0 }}>Pinned Scripts</h3>
+              </div>
+              <div className="file-controls">
+                <button className="file-action-btn" onClick={handleExport} title="Download Pinned Scripts">
+                  <span>⬇ Save</span>
+                </button>
+                <button className="file-action-btn" onClick={handleImportClick} title="Upload JSON File">
+                  <span>⬆ Load</span>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden-file-input"
+                  accept=".json"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            </div>
+            <div id="pinnedResultsList" className="script-list">
+              {pinnedScripts.length === 0 ? (
+                <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem', padding: '10px 0' }}>
+                  No pinned scripts yet.
+                </div>
+              ) : (
+                pinnedScripts.map(script => (
+                  <ScriptCard
+                    key={script.uniqueId}
+                    script={script}
+                    isPinned={true}
+                    onTogglePin={() => unpinScript(script.uniqueId)}
+                    onNameChange={(name) => updateScriptName(script.uniqueId, name)}
+                    onTransfer={onTransferToAdvertisers ? (s) => onTransferToAdvertisers(s) : null}
+                  />
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
