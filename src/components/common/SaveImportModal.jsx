@@ -97,7 +97,7 @@ function SaveImportModal({ isOpen, onClose }) {
           {/* Option 1: File Upload */}
           <div className="import-option">
             <h4>Option 1: Choose File</h4>
-            <p>Select your save.json file from disk.</p>
+            <p>Select your latest JSON save file from disk.</p>
             <input
               ref={fileInputRef}
               type="file"
