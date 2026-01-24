@@ -238,6 +238,26 @@ export function useScriptGenerator() {
     }
   }, [generatedScripts, pinnedScripts, savePinnedScripts]);
 
+  // Pin an external script (e.g., from Synergy tab)
+  const pinScript = useCallback((script) => {
+    // Check if already pinned by uniqueId
+    const existingIndex = pinnedScripts.findIndex(s => String(s.uniqueId) === String(script.uniqueId));
+    if (existingIndex > -1) {
+      return { error: 'Script is already pinned' };
+    }
+    
+    const newPinned = JSON.parse(JSON.stringify(script));
+    if (!newPinned.name) newPinned.name = "Untitled Script";
+    savePinnedScripts([...pinnedScripts, newPinned]);
+    return { success: true };
+  }, [pinnedScripts, savePinnedScripts]);
+
+  // Unpin by uniqueId
+  const unpinScript = useCallback((uniqueId) => {
+    const newPinned = pinnedScripts.filter(s => String(s.uniqueId) !== String(uniqueId));
+    savePinnedScripts(newPinned);
+  }, [pinnedScripts, savePinnedScripts]);
+
   const updateScriptName = useCallback((uniqueId, newName) => {
     const newPinned = pinnedScripts.map(s => 
       s.uniqueId === uniqueId ? { ...s, name: newName } : s
@@ -311,6 +331,8 @@ export function useScriptGenerator() {
     pinnedScripts,
     generateScripts,
     togglePin,
+    pinScript,
+    unpinScript,
     updateScriptName,
     exportPinnedScripts,
     importPinnedScripts,

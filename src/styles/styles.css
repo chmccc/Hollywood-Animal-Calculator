@@ -1323,7 +1323,7 @@ footer { text-align: center; color: #555; font-size: 0.8rem; margin-top: 40px; }
 .tag-browser-card {
     background: linear-gradient(135deg, #d4c4a8 0%, #c9b896 100%);
     color: #5a3d2b;
-    border: 2px solid #b8a67d;
+    border: 2px solid #a08060;
     border-radius: 4px;
     padding: 8px 14px;
     font-size: 0.85rem;
@@ -1339,10 +1339,9 @@ footer { text-align: center; color: #555; font-size: 0.8rem; margin-top: 40px; }
 .tag-browser-card::after {
     content: '';
     position: absolute;
-    width: 5px;
-    height: 5px;
-    border: 1px solid #8b7355;
-    opacity: 0.6;
+    width: 6px;
+    height: 6px;
+    border: 1px solid #6b5040;
 }
 
 .tag-browser-card::before {
@@ -1410,8 +1409,8 @@ footer { text-align: center; color: #555; font-size: 0.8rem; margin-top: 40px; }
 /* --- TAG SCORE DELTA STYLES --- */
 /* ========================================= */
 
-/* Card layout for name + deltas */
-.tag-browser-card {
+/* Card layout for name + deltas (only when deltas are shown) */
+.tag-browser-card.has-deltas {
     display: flex;
     flex-direction: column;
     align-items: center;

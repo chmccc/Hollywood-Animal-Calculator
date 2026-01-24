@@ -1,6 +1,6 @@
 import { formatScore, formatSimpleScore, formatFinalRating } from '../../utils/calculations';
 
-function SynergyResults({ results, onTransfer }) {
+function SynergyResults({ results, onTransfer, onPin, isPinned = false }) {
   const {
     rawAverage,
     totalScore,
@@ -130,14 +130,27 @@ function SynergyResults({ results, onTransfer }) {
         </div>
       </div>
 
-      {onTransfer && (
-        <div className="action-area" style={{ marginTop: 0 }}>
-          <button 
-            className="analyze-btn secondary-btn"
-            onClick={onTransfer}
-          >
-            Find Best Advertisers →
-          </button>
+      {(onTransfer || onPin) && (
+        <div className="action-area" style={{ marginTop: 0, display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          {onPin && (
+            <button 
+              className={`analyze-btn ${isPinned ? 'pinned-btn' : ''}`}
+              onClick={onPin}
+              disabled={isPinned}
+              title={isPinned ? 'Already pinned' : 'Pin this script'}
+              style={isPinned ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+            >
+              {isPinned ? '★ Pinned' : '☆ Pin Script'}
+            </button>
+          )}
+          {onTransfer && (
+            <button 
+              className="analyze-btn secondary-btn"
+              onClick={onTransfer}
+            >
+              Find Best Advertisers →
+            </button>
+          )}
         </div>
       )}
     </div>

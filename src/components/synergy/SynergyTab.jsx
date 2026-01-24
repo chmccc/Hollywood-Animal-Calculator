@@ -1,12 +1,14 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useSynergyCalculation } from '../../hooks/useSynergyCalculation';
+import { useScriptGenerator } from '../../hooks/useScriptGenerator';
 import { MULTI_SELECT_CATEGORIES } from '../../data/gameData';
 import Card from '../common/Card';
 import SearchBar from '../common/SearchBar';
 import CategorySelector from '../common/CategorySelector';
 import TagBrowser from '../common/TagBrowser';
 import SynergyResults from './SynergyResults';
+import ScriptCard from '../generator/ScriptCard';
 import { collectTagInputs, calculateScoreDeltas } from '../../utils/tagHelpers';
 
 // Genre percentage slider component for browse mode
@@ -58,12 +60,21 @@ function GenreSlider({ tagId, tagName, value, onChange }) {
 function SynergyTab({ onTransferToAdvertisers = null }) {
   const { categories, isLoading, tags, compatibility } = useApp();
   const { calculateSynergy } = useSynergyCalculation();
+  const {
+    pinnedScripts,
+    pinScript,
+    unpinScript,
+    updateScriptName,
+    exportPinnedScripts,
+    importPinnedScripts
+  } = useScriptGenerator();
   
   const [selectedTags, setSelectedTags] = useState([]);
   const [genrePercents, setGenrePercents] = useState({});
   const [results, setResults] = useState(null);
   const [initialized, setInitialized] = useState(false);
-  const [inputMode, setInputMode] = useState('dropdown'); // 'dropdown' | 'browser'
+  const [inputMode, setInputMode] = useState('browser'); // 'dropdown' | 'browser'
+  const fileInputRef = useRef(null);
 
   // Memoized Set for TagBrowser
   const selectedTagIds = useMemo(() => 
@@ -137,14 +148,18 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
     };
   }, [selectedTags, genrePercentSum]);
 
-  // Initialize with one empty tag per category
+  // Initialize - empty array for browser mode, empty tags per category for dropdown
   useEffect(() => {
     if (!isLoading && !initialized) {
-      const initialTags = categories.map(cat => ({ id: '', category: cat }));
-      setSelectedTags(initialTags);
+      if (inputMode === 'dropdown') {
+        const initialTags = categories.map(cat => ({ id: '', category: cat }));
+        setSelectedTags(initialTags);
+      } else {
+        setSelectedTags([]);
+      }
       setInitialized(true);
     }
-  }, [isLoading, initialized, categories]);
+  }, [isLoading, initialized, categories, inputMode]);
 
   const handleSearchSelect = useCallback((tag) => {
     setSelectedTags(prev => {
@@ -239,6 +254,73 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
       );
       onTransferToAdvertisers(tagInputs, genrePercents);
     }
+  };
+
+  // Create a script object from current synergy results for pinning
+  const createScriptFromSynergy = useCallback(() => {
+    if (!results || !validation.isValid) return null;
+    
+    const tagInputs = collectTagInputs(
+      selectedTags.filter(t => t.id),
+      genrePercents
+    );
+    
+    // Calculate script quality based on scoring elements
+    let maxScriptQuality = 5;
+    if (results.ngCount >= 9) maxScriptQuality = 8;
+    else if (results.ngCount >= 7) maxScriptQuality = 7;
+    else if (results.ngCount >= 5) maxScriptQuality = 6;
+    
+    const movieScore = Math.max(results.displayCom, results.displayArt);
+    
+    return {
+      tags: tagInputs,
+      stats: {
+        avgComp: results.rawAverage,
+        synergySum: results.totalScore,
+        maxScriptQuality,
+        movieScore: movieScore.toFixed(1)
+      },
+      uniqueId: Date.now() + Math.random().toString(),
+      name: ''
+    };
+  }, [results, validation.isValid, selectedTags, genrePercents]);
+
+  // Pin current synergy script
+  const handlePinScript = useCallback(() => {
+    const script = createScriptFromSynergy();
+    if (script) {
+      pinScript(script);
+    }
+  }, [createScriptFromSynergy, pinScript]);
+
+  // Export/Import handlers for pinned scripts
+  const handleExport = () => {
+    const result = exportPinnedScripts();
+    if (result.error) {
+      alert(result.error);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = importPinnedScripts(event.target.result);
+      if (result.error) {
+        alert(result.error);
+      } else if (result.added) {
+        alert(`Loaded ${result.added} scripts.`);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   if (isLoading || !initialized) {
@@ -350,8 +432,52 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
         <SynergyResults 
           results={results} 
           onTransfer={onTransferToAdvertisers ? handleTransfer : null}
+          onPin={handlePinScript}
         />
       )}
+
+      {/* Pinned Scripts - shared with Generator tab */}
+      <div id="pinned-scripts-container" className="results-container">
+        <div className="pinned-header-row">
+          <div className="section-title" style={{ marginBottom: 0 }}>
+            <h3 style={{ color: 'var(--accent)', margin: 0 }}>Pinned Scripts</h3>
+          </div>
+          <div className="file-controls">
+            <button className="file-action-btn" onClick={handleExport} title="Download Pinned Scripts">
+              <span>⬇ Save</span>
+            </button>
+            <button className="file-action-btn" onClick={handleImportClick} title="Upload JSON File">
+              <span>⬆ Load</span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden-file-input"
+              accept=".json"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+          </div>
+        </div>
+        <div id="pinnedResultsList" className="script-list">
+          {pinnedScripts.length === 0 ? (
+            <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem', padding: '10px 0' }}>
+              No pinned scripts yet.
+            </div>
+          ) : (
+            pinnedScripts.map(script => (
+              <ScriptCard
+                key={script.uniqueId}
+                script={script}
+                isPinned={true}
+                onTogglePin={() => unpinScript(script.uniqueId)}
+                onNameChange={(name) => updateScriptName(script.uniqueId, name)}
+                onTransfer={onTransferToAdvertisers ? (s) => onTransferToAdvertisers(s) : null}
+              />
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }

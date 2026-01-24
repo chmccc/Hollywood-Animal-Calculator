@@ -27,9 +27,10 @@ function getDeltaClass(value) {
  * @param {function} onToggle - Callback when a card is clicked: (tagId, category) => void
  * @param {'locked' | 'excluded' | 'selected'} variant - Controls styling (gold vs red vs green accents)
  * @param {Object} scoreDeltas - Optional map of tagId -> { artDelta: number, comDelta: number }
+ * @param {boolean} showDeltas - Whether to show the delta row (for synergy mode)
  * @param {function} renderCategoryExtra - Optional render prop: (category) => ReactNode for extra content inside accordion
  */
-function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas = {}, renderCategoryExtra = null }) {
+function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas = {}, showDeltas = false, renderCategoryExtra = null }) {
   const { categories, getTagsByCategory } = useApp();
   
   // Track which categories are expanded (all start collapsed)
@@ -117,19 +118,21 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                 return (
                   <button
                     key={tag.id}
-                    className={`tag-browser-card ${selectedClass} ${outlineClass}`.trim()}
+                    className={`tag-browser-card ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''}`.trim()}
                     onClick={() => handleCardClick(tag.id, category)}
                     type="button"
                   >
                     <span className="tag-name">{tag.name}</span>
-                    <span className="tag-deltas">
-                      <span className={`tag-delta ${getDeltaClass(artDelta)}`}>
-                        A: {formatDelta(artDelta)}
+                    {showDeltas && (
+                      <span className="tag-deltas">
+                        <span className={`tag-delta ${getDeltaClass(artDelta)}`}>
+                          A: {formatDelta(artDelta)}
+                        </span>
+                        <span className={`tag-delta ${getDeltaClass(comDelta)}`}>
+                          C: {formatDelta(comDelta)}
+                        </span>
                       </span>
-                      <span className={`tag-delta ${getDeltaClass(comDelta)}`}>
-                        C: {formatDelta(comDelta)}
-                      </span>
-                    </span>
+                    )}
                   </button>
                 );
               })}
