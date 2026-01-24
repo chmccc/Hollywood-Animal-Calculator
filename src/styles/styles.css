@@ -1323,7 +1323,7 @@ footer { text-align: center; color: #555; font-size: 0.8rem; margin-top: 40px; }
 .tag-browser-card {
     background: linear-gradient(135deg, #d4c4a8 0%, #c9b896 100%);
     color: #5a3d2b;
-    border: 1px solid #b8a67d;
+    border: 2px solid #b8a67d;
     border-radius: 4px;
     padding: 8px 14px;
     font-size: 0.85rem;
@@ -1404,6 +1404,60 @@ footer { text-align: center; color: #555; font-size: 0.8rem; margin-top: 40px; }
 .tag-browser-card.selected-selected::after {
     border-color: #2d8b40;
     opacity: 0.8;
+}
+
+/* ========================================= */
+/* --- TAG SCORE DELTA STYLES --- */
+/* ========================================= */
+
+/* Card layout for name + deltas */
+.tag-browser-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 120px;
+}
+
+.tag-name {
+    font-weight: 600;
+}
+
+.tag-deltas {
+    display: flex;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    width: 100%;
+    justify-content: center;
+}
+
+.tag-delta {
+    font-family: 'Inter', monospace;
+    min-width: 42px;
+    text-align: center;
+}
+
+.tag-delta.delta-positive {
+    color: #2d7a3a;
+}
+
+.tag-delta.delta-negative {
+    color: #a33;
+}
+
+.tag-delta.delta-neutral {
+    color: #7a6b55;
+}
+
+/* Outline when both deltas are positive - vintage green */
+.tag-browser-card.tag-both-positive {
+    border-color: #4a9e4a;
+}
+
+/* Outline when both deltas are negative - vintage red */
+.tag-browser-card.tag-both-negative {
+    border-color: #b35555;
 }
 
 /* ========================================= */

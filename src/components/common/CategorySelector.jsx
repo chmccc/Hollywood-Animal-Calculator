@@ -9,7 +9,8 @@ function CategorySelector({
   genrePercents = {},
   onGenrePercentChange = null,
   context = 'default',
-  isExcluded = false
+  isExcluded = false,
+  scoreDeltas = {}
 }) {
   const { getTagsByCategory } = useApp();
   const tagsInCategory = getTagsByCategory(category);
@@ -110,9 +111,21 @@ function CategorySelector({
               onChange={(e) => updateTag(index, e.target.value)}
             >
               <option value="">-- Select {category} --</option>
-              {tagsInCategory.map(t => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
+              {tagsInCategory.map(t => {
+                // Add delta info to dropdown options
+                const deltas = scoreDeltas[t.id];
+                let suffix = '';
+                if (deltas) {
+                  const artStr = deltas.artDelta >= 0.05 ? `+${deltas.artDelta.toFixed(1)}` 
+                    : deltas.artDelta <= -0.05 ? deltas.artDelta.toFixed(1) : '-';
+                  const comStr = deltas.comDelta >= 0.05 ? `+${deltas.comDelta.toFixed(1)}`
+                    : deltas.comDelta <= -0.05 ? deltas.comDelta.toFixed(1) : '-';
+                  suffix = ` (A:${artStr} C:${comStr})`;
+                }
+                return (
+                  <option key={t.id} value={t.id}>{t.name}{suffix}</option>
+                );
+              })}
             </select>
             
             {showPercentSlider && tag.id && (

@@ -32,6 +32,66 @@ export function searchTags(searchIndex, query) {
   );
 }
 
+/**
+ * Calculate score deltas for all tags by simulating what would happen if each tag were added.
+ * Returns art and commercial score deltas for each unselected tag.
+ * 
+ * @param {Array} currentTagInputs - Current selected tags in calculation format [{id, percent, category}]
+ * @param {Object} allTags - All available tags from context
+ * @param {Object} compatibility - Compatibility data
+ * @param {Object} genrePairs - Genre pair data
+ * @param {number} baselineArt - Current art score
+ * @param {number} baselineCom - Current commercial score
+ * @param {function} calculateSynergy - The synergy calculation function
+ * @returns {Object} Map of tagId -> { artDelta: number, comDelta: number }
+ */
+export function calculateScoreDeltas(
+  currentTagInputs,
+  allTags,
+  baselineArt,
+  baselineCom,
+  calculateSynergy
+) {
+  const deltas = {};
+  const selectedIds = new Set(currentTagInputs.map(t => t.id));
+  
+  for (const tagId of Object.keys(allTags)) {
+    // Skip tags that are already selected
+    if (selectedIds.has(tagId)) {
+      deltas[tagId] = null;
+      continue;
+    }
+    
+    const tagData = allTags[tagId];
+    if (!tagData) {
+      deltas[tagId] = { artDelta: 0, comDelta: 0 };
+      continue;
+    }
+    
+    // Create a hypothetical selection with this tag added
+    const hypotheticalTags = [
+      ...currentTagInputs,
+      { id: tagId, percent: 1.0, category: tagData.category }
+    ];
+    
+    // Calculate what the scores would be
+    const result = calculateSynergy(hypotheticalTags);
+    
+    if (!result) {
+      deltas[tagId] = { artDelta: 0, comDelta: 0 };
+      continue;
+    }
+    
+    // Calculate deltas
+    const artDelta = result.displayArt - baselineArt;
+    const comDelta = result.displayCom - baselineCom;
+    
+    deltas[tagId] = { artDelta, comDelta };
+  }
+  
+  return deltas;
+}
+
 // Collect tag inputs from selector state
 export function collectTagInputs(selectedTags, genrePercents = {}) {
   const tagInputs = [];

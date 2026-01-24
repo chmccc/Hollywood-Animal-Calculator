@@ -7,7 +7,7 @@ import SearchBar from '../common/SearchBar';
 import CategorySelector from '../common/CategorySelector';
 import TagBrowser from '../common/TagBrowser';
 import SynergyResults from './SynergyResults';
-import { collectTagInputs } from '../../utils/tagHelpers';
+import { collectTagInputs, calculateScoreDeltas } from '../../utils/tagHelpers';
 
 // Genre percentage slider component for browse mode
 function GenreSlider({ tagId, tagName, value, onChange }) {
@@ -56,7 +56,7 @@ function GenreSlider({ tagId, tagName, value, onChange }) {
 }
 
 function SynergyTab({ onTransferToAdvertisers = null }) {
-  const { categories, isLoading, tags } = useApp();
+  const { categories, isLoading, tags, compatibility } = useApp();
   const { calculateSynergy } = useSynergyCalculation();
   
   const [selectedTags, setSelectedTags] = useState([]);
@@ -70,6 +70,33 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
     new Set(selectedTags.filter(t => t.id).map(t => t.id)), 
     [selectedTags]
   );
+
+  // Compute score deltas for all tags (what would happen if each tag were added)
+  const scoreDeltas = useMemo(() => {
+    const currentInputs = collectTagInputs(
+      selectedTags.filter(t => t.id),
+      genrePercents
+    );
+    
+    // Need at least one tag to calculate deltas
+    if (currentInputs.length === 0) {
+      return {};
+    }
+    
+    // Calculate baseline scores
+    const baselineResult = calculateSynergy(currentInputs);
+    const baselineArt = baselineResult?.displayArt ?? 0;
+    const baselineCom = baselineResult?.displayCom ?? 0;
+    
+    // Calculate deltas for all tags
+    return calculateScoreDeltas(
+      currentInputs,
+      tags,
+      baselineArt,
+      baselineCom,
+      calculateSynergy
+    );
+  }, [selectedTags, genrePercents, tags, calculateSynergy]);
 
   // Get selected genres with their names for the sliders
   const selectedGenres = useMemo(() => {
@@ -85,7 +112,7 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
   const genrePercentSum = useMemo(() => {
     if (selectedGenres.length <= 1) return 100;
     return selectedGenres.reduce((sum, genre) => {
-      return sum + (genrePercents[genre.id] ?? 100);
+      return sum + (genrePercents[genre.id] ?? 50);
     }, 0);
   }, [selectedGenres, genrePercents]);
 
@@ -254,6 +281,7 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                 genrePercents={genrePercents}
                 onGenrePercentChange={handleGenrePercentChange}
                 context="synergy"
+                scoreDeltas={scoreDeltas}
               />
             ))}
           </div>
@@ -262,6 +290,7 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
             selectedTagIds={selectedTagIds}
             onToggle={handleTagToggle}
             variant="selected"
+            scoreDeltas={scoreDeltas}
             renderCategoryExtra={(category) => {
               if (category === 'Genre' && selectedGenres.length > 1) {
                 return (
@@ -271,7 +300,7 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                         key={genre.id}
                         tagId={genre.id}
                         tagName={genre.name}
-                        value={genrePercents[genre.id] ?? 100}
+                        value={genrePercents[genre.id] ?? 50}
                         onChange={handleGenrePercentChange}
                       />
                     ))}
