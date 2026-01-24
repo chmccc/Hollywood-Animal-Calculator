@@ -1,13 +1,11 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useScriptGenerator } from '../../hooks/useScriptGenerator';
-import { useAudienceAnalysis } from '../../hooks/useAudienceAnalysis';
 import Card from '../common/Card';
 import Slider from '../common/Slider';
 import CategorySelector from '../common/CategorySelector';
 import TagBrowser from '../common/TagBrowser';
 import ScriptCard from './ScriptCard';
-import TargetAudience from '../advertisers/TargetAudience';
 import { collectTagInputs } from '../../utils/tagHelpers';
 
 function GeneratorTab({ onTransferToAdvertisers = null }) {
@@ -21,7 +19,6 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     exportPinnedScripts,
     importPinnedScripts
   } = useScriptGenerator();
-  const { analyzeMovie } = useAudienceAnalysis();
 
   const [targetComp, setTargetComp] = useState(4.0);
   const [targetScore, setTargetScore] = useState(6);
@@ -56,14 +53,6 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     new Set(excludedTags.filter(t => t.id).map(t => t.id)), 
     [excludedTags]
   );
-
-  // Calculate audience data for the top generated script
-  const topScriptAudienceData = useMemo(() => {
-    if (generatedScripts.length === 0) return null;
-    const topScript = generatedScripts[0];
-    if (!topScript.stats.comScore || !topScript.stats.artScore) return null;
-    return analyzeMovie(topScript.tags, topScript.stats.comScore, topScript.stats.artScore);
-  }, [generatedScripts, analyzeMovie]);
 
   const handleGenrePercentChange = useCallback((tagId, value) => {
     setGenrePercents(prev => ({ ...prev, [tagId]: value }));
@@ -335,12 +324,6 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
           {/* Generated Scripts */}
           {generatedScripts.length > 0 && (
             <div id="results-generator" className="results-container">
-              {topScriptAudienceData && (
-                <TargetAudience
-                  targetAudiences={topScriptAudienceData.targetAudiences}
-                  thresholds={topScriptAudienceData.thresholds}
-                />
-              )}
               <div className="section-title">
                 <h3>Generated Options</h3>
               </div>

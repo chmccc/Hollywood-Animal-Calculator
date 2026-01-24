@@ -23,7 +23,6 @@ A web tool for [Hollywood Animal](https://store.steampowered.com/app/2886410/Hol
 - Lock specific tags you want to include
 - Exclude tags you don't own or want to avoid
 - Persistent exclusions saved to browser storage
-- Target Audience preview for generated scripts
 
 ### Advertisers & Distribution
 - Find the best advertisers for your movie's target demographics
