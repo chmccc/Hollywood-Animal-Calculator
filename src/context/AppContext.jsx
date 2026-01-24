@@ -70,7 +70,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     async function loadLocalization() {
       try {
-        const res = await fetch(`/localization/${currentLanguage}.json`);
+        const res = await fetch(`${import.meta.env.BASE_URL}localization/${currentLanguage}.json`);
         if (!res.ok) throw new Error(`Could not load ${currentLanguage}.json`);
         
         const locData = await res.json();
@@ -98,10 +98,10 @@ export function AppProvider({ children }) {
     async function loadExternalData() {
       try {
         const [tagRes, weightRes, compRes, genreRes] = await Promise.all([
-          fetch('/data/TagData.json'),
-          fetch('/data/TagsAudienceWeights.json'),
-          fetch('/data/TagCompatibilityData.json'),
-          fetch('/data/GenrePairs.json')
+          fetch(`${import.meta.env.BASE_URL}data/TagData.json`),
+          fetch(`${import.meta.env.BASE_URL}data/TagsAudienceWeights.json`),
+          fetch(`${import.meta.env.BASE_URL}data/TagCompatibilityData.json`),
+          fetch(`${import.meta.env.BASE_URL}data/GenrePairs.json`)
         ]);
 
         if (!tagRes.ok || !weightRes.ok) {
