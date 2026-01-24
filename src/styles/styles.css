@@ -757,10 +757,14 @@ input[type="text"] {
 .result-card {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    min-height: 200px;
     box-sizing: border-box;
     padding: 30px;
+}
+
+/* Only apply height: 100% when inside a results-row grid */
+.results-row .result-card {
+    height: 100%;
+    min-height: 200px;
 }
 
 .result-card h3 {
@@ -971,9 +975,10 @@ input[type="text"] {
     gap: 0;
     padding: 0;
     border: 1px solid var(--border);
-    overflow: hidden;
+    border-radius: var(--radius);
+    height: auto;
 }
-.breakdown-col { padding: 30px; display: flex; flex-direction: column; gap: 12px; }
+.breakdown-col { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
 .left-col { background: rgba(255,255,255,0.02); }
 .right-col { background: #1e1e1e; }
 .col-header {
