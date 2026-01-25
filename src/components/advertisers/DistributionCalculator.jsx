@@ -11,7 +11,7 @@ function DistributionCalculator({ comScore, ownedScreenings, onOwnedScreeningsCh
           isFromSave && (
             <span 
               className="save-indicator"
-              title="Value loaded from save file"
+              title="Screenings loaded from save file"
               style={{
                 fontSize: '0.7rem',
                 padding: '2px 8px',
@@ -21,7 +21,7 @@ function DistributionCalculator({ comScore, ownedScreenings, onOwnedScreeningsCh
                 color: 'var(--accent)'
               }}
             >
-              From Save
+              Screening Count Loaded From Save
             </span>
           )
         }

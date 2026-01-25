@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useSynergyCalculation } from '../../hooks/useSynergyCalculation';
-import { useScriptGenerator } from '../../hooks/useScriptGenerator';
+import { useScriptGeneratorContext } from '../../context/ScriptGeneratorContext';
 import { useAudienceAnalysis } from '../../hooks/useAudienceAnalysis';
 import { MULTI_SELECT_CATEGORIES } from '../../data/gameData';
 import LayoutCard from '../common/LayoutCard';
@@ -10,7 +10,6 @@ import QuickSearchCard from '../common/QuickSearchCard';
 import CategorySelector from '../common/CategorySelector';
 import TagBrowser from '../common/TagBrowser';
 import SynergyResults from './SynergyResults';
-import ScriptCard from '../generator/ScriptCard';
 import { collectTagInputs, calculateScoreDeltas } from '../../utils/tagHelpers';
 
 // Genre percentage slider component for browse mode
@@ -63,21 +62,13 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
   const { categories, isLoading, tags, compatibility, maxTagSlots, ownedTagIds } = useApp();
   const { calculateSynergy } = useSynergyCalculation();
   const { analyzeMovie } = useAudienceAnalysis();
-  const {
-    pinnedScripts,
-    pinScript,
-    unpinScript,
-    updateScriptName,
-    exportPinnedScripts,
-    importPinnedScripts
-  } = useScriptGenerator();
+  const { pinScript } = useScriptGeneratorContext();
   
   const [selectedTags, setSelectedTags] = useState([]);
   const [genrePercents, setGenrePercents] = useState({});
   const [results, setResults] = useState(null);
   const [initialized, setInitialized] = useState(false);
   const [inputMode, setInputMode] = useState('browser'); // 'dropdown' | 'browser'
-  const fileInputRef = useRef(null);
 
   // Calculate audience data when results are available
   const audienceData = useMemo(() => {
@@ -375,35 +366,6 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
     }
   }, [createScriptFromSynergy, pinScript]);
 
-  // Export/Import handlers for pinned scripts
-  const handleExport = () => {
-    const result = exportPinnedScripts();
-    if (result.error) {
-      alert(result.error);
-    }
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = importPinnedScripts(event.target.result);
-      if (result.error) {
-        alert(result.error);
-      } else if (result.added) {
-        alert(`Loaded ${result.added} scripts.`);
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  };
-
   if (isLoading || !initialized) {
     return <div>Loading...</div>;
   }
@@ -553,45 +515,6 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
             </div>
           )}
 
-          {/* Pinned Scripts - shared with Generator tab */}
-          <LayoutCard
-            id="pinned-scripts-container"
-            title="Pinned Scripts"
-            subtitle="Save your favorite script combinations for later."
-            headerActions={
-              <>
-                <Button size="sm" variant="primary" onClick={handleExport} title="⬇ Save" />
-                <Button size="sm" variant="primary" onClick={handleImportClick} title="⬆ Load" />
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden-file-input"
-                  accept=".json"
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                />
-              </>
-            }
-          >
-            <div id="pinnedResultsList" className="script-list">
-              {pinnedScripts.length === 0 ? (
-                <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem', padding: '10px 0' }}>
-                  No pinned scripts yet.
-                </div>
-              ) : (
-                pinnedScripts.map(script => (
-                  <ScriptCard
-                    key={script.uniqueId}
-                    script={script}
-                    isPinned={true}
-                    onTogglePin={() => unpinScript(script.uniqueId)}
-                    onNameChange={(name) => updateScriptName(script.uniqueId, name)}
-                    onTransfer={onTransferToAdvertisers ? (s) => onTransferToAdvertisers(s) : null}
-                  />
-                ))
-              )}
-            </div>
-          </LayoutCard>
         </div>
       </div>
     </div>

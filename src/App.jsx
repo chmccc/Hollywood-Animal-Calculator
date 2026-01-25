@@ -1,14 +1,17 @@
 import { useState, useCallback } from 'react'
 import { AppProvider } from './context/AppContext'
+import { ScriptGeneratorProvider, useScriptGeneratorContext } from './context/ScriptGeneratorContext'
 import Header from './components/common/Header'
 import TabNav from './components/common/TabNav'
 import SynergyTab from './components/synergy/SynergyTab'
 import GeneratorTab from './components/generator/GeneratorTab'
 import AdvertisersTab from './components/advertisers/AdvertisersTab'
+import PinnedScriptsTab from './components/pinned/PinnedScriptsTab'
 
-function App() {
+function AppContent() {
   const [currentTab, setCurrentTab] = useState('synergy')
   const [transferData, setTransferData] = useState(null)
+  const { pinnedScripts } = useScriptGeneratorContext()
 
   const handleTransferToAdvertisers = useCallback((tagsOrScript, genrePercents = null) => {
     // Handle transfer from generator (script object) or synergy (tag array)
@@ -40,26 +43,41 @@ function App() {
   }, []);
 
   return (
-    <AppProvider>
-      <div className="main-wrapper">
-        <Header />
-        <TabNav currentTab={currentTab} onTabChange={handleTabChange} />
-        
-        <div className="container">
-          {currentTab === 'generator' && (
-            <GeneratorTab onTransferToAdvertisers={handleTransferToAdvertisers} />
-          )}
-          {currentTab === 'synergy' && (
-            <SynergyTab onTransferToAdvertisers={handleTransferToAdvertisers} />
-          )}
-          {currentTab === 'advertisers' && (
-            <AdvertisersTab 
-              initialTags={transferData?.tags} 
-              initialGenrePercents={transferData?.genrePercents}
-            />
-          )}
-        </div>
+    <div className="main-wrapper">
+      <Header />
+      <TabNav 
+        currentTab={currentTab} 
+        onTabChange={handleTabChange} 
+        pinnedCount={pinnedScripts.length}
+      />
+      
+      <div className="container">
+        {currentTab === 'generator' && (
+          <GeneratorTab onTransferToAdvertisers={handleTransferToAdvertisers} />
+        )}
+        {currentTab === 'synergy' && (
+          <SynergyTab onTransferToAdvertisers={handleTransferToAdvertisers} />
+        )}
+        {currentTab === 'advertisers' && (
+          <AdvertisersTab 
+            initialTags={transferData?.tags} 
+            initialGenrePercents={transferData?.genrePercents}
+          />
+        )}
+        {currentTab === 'pinned' && (
+          <PinnedScriptsTab onTransferToAdvertisers={handleTransferToAdvertisers} />
+        )}
       </div>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <AppProvider>
+      <ScriptGeneratorProvider>
+        <AppContent />
+      </ScriptGeneratorProvider>
     </AppProvider>
   )
 }

@@ -1,6 +1,6 @@
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
-import { useScriptGenerator } from '../../hooks/useScriptGenerator';
+import { useScriptGeneratorContext } from '../../context/ScriptGeneratorContext';
 import LayoutCard from '../common/LayoutCard';
 import Button from '../common/Button';
 import Slider from '../common/Slider';
@@ -15,11 +15,8 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     generatedScripts,
     pinnedScripts,
     generateScripts,
-    togglePin,
-    updateScriptName,
-    exportPinnedScripts,
-    importPinnedScripts
-  } = useScriptGenerator();
+    togglePin
+  } = useScriptGeneratorContext();
 
   const [targetComp, setTargetComp] = useState(4.0);
   const [targetScore, setTargetScore] = useState(6);
@@ -27,8 +24,6 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
   const [excludedTags, setExcludedTags] = useState([]);
   const [genrePercents, setGenrePercents] = useState({});
   const [excludedInputMode, setExcludedInputMode] = useState('browser'); // 'dropdown' | 'browser'
-  
-  const fileInputRef = useRef(null);
 
   // Load exclusions from localStorage on mount
   useEffect(() => {
@@ -139,34 +134,6 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
       alert(result.error);
     }
   }, [excludedTags, lockedTags, genrePercents, targetComp, targetScore, generateScripts]);
-
-  const handleExport = () => {
-    const result = exportPinnedScripts();
-    if (result.error) {
-      alert(result.error);
-    }
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = importPinnedScripts(event.target.result);
-      if (result.error) {
-        alert(result.error);
-      } else if (result.added) {
-        alert(`Loaded ${result.added} scripts.`);
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  };
 
   const getRequiredTagsText = () => {
     let requiredTags = 4;
@@ -330,46 +297,6 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
             </div>
           )}
 
-          {/* Pinned Scripts */}
-          <LayoutCard
-            id="pinned-scripts-container"
-            title="Pinned Scripts"
-            subtitle="Save your favorite script combinations for later."
-            headerActions={
-              <>
-                <Button size="sm" variant="primary" onClick={handleExport} title="⬇ Save" />
-                <Button size="sm" variant="primary" onClick={handleImportClick} title="⬆ Load" />
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden-file-input"
-                  accept=".json"
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                />
-              </>
-            }
-          >
-            <div id="pinnedResultsList" className="script-list">
-              {pinnedScripts.length === 0 ? (
-                <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem', padding: '10px 0' }}>
-                  No pinned scripts yet.
-                </div>
-              ) : (
-                pinnedScripts.map(script => (
-                  <ScriptCard
-                    key={script.uniqueId}
-                    script={script}
-                    isPinned={true}
-                    onTogglePin={() => togglePin(script.uniqueId)}
-                    onNameChange={(name) => updateScriptName(script.uniqueId, name)}
-                    onTransfer={onTransferToAdvertisers}
-                    lockedTagIds={lockedTagIds}
-                  />
-                ))
-              )}
-            </div>
-          </LayoutCard>
         </div>
       </div>
     </div>

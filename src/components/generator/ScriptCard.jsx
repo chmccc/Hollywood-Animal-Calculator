@@ -70,12 +70,14 @@ function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, o
             </div>
           )}
         </div>
-        {script.fromSave && script.phaseName && (
+        {script.fromSave && script.phaseName ? (
           <span className="production-phase-badge">{script.phaseName}</span>
+        ) : isPinned && (
+          <span className="production-phase-badge user-pinned">User Pinned</span>
         )}
         <Button
           size="icon"
-          variant={isPinned ? 'primary' : 'ghost'}
+          variant="primary"
           title={isPinned ? 'Unpin' : 'Pin to Save'}
           onClick={(e) => {
             e.stopPropagation();

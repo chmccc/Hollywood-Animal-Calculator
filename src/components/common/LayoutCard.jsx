@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import './LayoutCard.css';
 
 /**
@@ -86,6 +87,7 @@ function HeaderFlourish({ flip = false }) {
  * - headerActions: Optional React node for subtitle row (buttons, etc.)
  * - accentBorder: 'top' | 'left' | 'none' - position of accent border highlight
  * - style: Additional inline styles
+ * - defaultCollapsed: Initial collapsed state
  */
 function LayoutCard({ 
   id,
@@ -95,12 +97,20 @@ function LayoutCard({
   className = '', 
   headerActions = null,
   accentBorder = 'none',
-  style = {}
+  style = {},
+  defaultCollapsed = false
 }) {
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  
   const accentClass = accentBorder !== 'none' ? `accent-${accentBorder}` : '';
+  const collapsedClass = isCollapsed ? 'is-collapsed' : '';
+  
+  const handleHeaderClick = () => {
+    setIsCollapsed(!isCollapsed);
+  };
   
   return (
-    <div id={id} className={`layout-card ${accentClass} ${className}`.trim()} style={style}>
+    <div id={id} className={`layout-card ${accentClass} ${collapsedClass} ${className}`.trim()} style={style}>
       {/* Vignette overlay */}
       <div className="layout-card-vignette" aria-hidden="true" />
       
@@ -112,7 +122,19 @@ function LayoutCard({
       
       {/* Optional header with centered title */}
       {title && (
-        <div className="layout-card-header">
+        <div 
+          className="layout-card-header"
+          onClick={handleHeaderClick}
+          role="button"
+          aria-expanded={!isCollapsed}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleHeaderClick();
+            }
+          }}
+        >
           <HeaderFlourish />
           <h3>{title}</h3>
           <HeaderFlourish flip />
@@ -121,20 +143,22 @@ function LayoutCard({
       )}
       
       {/* Content */}
-      <div className="layout-card-content">
-        {/* Subtitle row with optional actions */}
-        {(subtitle || headerActions) && (
-          <div className="layout-card-subtitle-row">
-            {subtitle && <p className="subtitle">{subtitle}</p>}
-            {headerActions && (
-              <div className="layout-card-actions">
-                {headerActions}
-              </div>
-            )}
-          </div>
-        )}
-        {children}
-      </div>
+      {!isCollapsed && (
+        <div className="layout-card-content">
+          {/* Subtitle row with optional actions */}
+          {(subtitle || headerActions) && (
+            <div className="layout-card-subtitle-row">
+              {subtitle && <p className="subtitle">{subtitle}</p>}
+              {headerActions && (
+                <div className="layout-card-actions">
+                  {headerActions}
+                </div>
+              )}
+            </div>
+          )}
+          {children}
+        </div>
+      )}
     </div>
   );
 }

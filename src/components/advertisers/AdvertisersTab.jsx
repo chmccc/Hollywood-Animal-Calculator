@@ -186,11 +186,11 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
                 />
               ))}
             </div>
-            
-            <div className="action-area">
-              <Button variant="primary" size="lg" fullWidth onClick={handleAnalyze} title="Analyse" />
-            </div>
           </LayoutCard>
+
+          <div className="action-area">
+            <Button variant="primary" size="lg" fullWidth onClick={handleAnalyze} title="Analyse" />
+          </div>
 
           {/* Distribution Calculator (always visible) */}
           <DistributionCalculator

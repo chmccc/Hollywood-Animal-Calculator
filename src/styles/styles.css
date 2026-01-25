@@ -746,7 +746,9 @@ select option {
 }
 
 /* --- ACTION BUTTONS --- */
-.action-area { margin-top: 20px; }
+.action-area { 
+    /* Spacing handled by parent flex gap */
+}
 
 /* Legacy .analyze-btn and .secondary-btn removed - using Button component */
 
@@ -918,8 +920,12 @@ input[type="text"]::placeholder {
     border-radius: 10px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    white-space: nowrap;
     margin-right: 10px;
+}
+
+.production-phase-badge.user-pinned {
+    background: rgba(201, 179, 112, 0.2);
+    color: var(--accent);
 }
 
 .from-save-indicator {
@@ -1426,9 +1432,56 @@ input[type="text"]::placeholder {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 12px;
+    padding: 16px;
     background: var(--card-table-green);
     border-radius: var(--radius);
+    position: relative;
+    
+    /* Inner border effect */
+    box-shadow: 
+        inset 0 0 0 1px rgba(212, 175, 55, 0.15),
+        inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Pinstripe texture overlay */
+.tag-browser-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-image: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 3px,
+        rgba(0, 0, 0, 0.08) 3px,
+        rgba(0, 0, 0, 0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Corner flourishes - L-shaped accents */
+.tag-browser-container::after {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    z-index: 0;
+    /* L-shaped corners using multiple backgrounds (horizontal + vertical bars for each corner) */
+    background: 
+        /* Top-left L */
+        linear-gradient(var(--border-gold), var(--border-gold)) 0 0 / 16px 2px no-repeat,
+        linear-gradient(var(--border-gold), var(--border-gold)) 0 0 / 2px 16px no-repeat,
+        /* Top-right L */
+        linear-gradient(var(--border-gold), var(--border-gold)) 100% 0 / 16px 2px no-repeat,
+        linear-gradient(var(--border-gold), var(--border-gold)) 100% 0 / 2px 16px no-repeat,
+        /* Bottom-left L */
+        linear-gradient(var(--border-gold), var(--border-gold)) 0 100% / 16px 2px no-repeat,
+        linear-gradient(var(--border-gold), var(--border-gold)) 0 100% / 2px 16px no-repeat,
+        /* Bottom-right L */
+        linear-gradient(var(--border-gold), var(--border-gold)) 100% 100% / 16px 2px no-repeat,
+        linear-gradient(var(--border-gold), var(--border-gold)) 100% 100% / 2px 16px no-repeat;
+    opacity: 0.5;
 }
 
 /* Each category section */
@@ -1436,6 +1489,8 @@ input[type="text"]::placeholder {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    position: relative;
+    z-index: 1;
 }
 
 /* Accordion header for each category */
@@ -2148,6 +2203,48 @@ input[type="text"]::placeholder {
 }
 
 /* ========================================= */
+/* --- PINNED SCRIPTS TAB LAYOUT --- */
+/* ========================================= */
+
+.pinned-layout {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.pinned-layout .validation-placeholder {
+    padding: 40px 20px;
+}
+
+@media (min-width: 1200px) {
+    .pinned-layout {
+        overflow-y: auto;
+        height: 100%;
+        padding-right: 10px;
+        padding-bottom: 20px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) var(--bg-color);
+    }
+
+    .pinned-layout::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .pinned-layout::-webkit-scrollbar-track {
+        background: var(--bg-color);
+        border-radius: 4px;
+    }
+
+    .pinned-layout::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+    }
+
+    .pinned-layout::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+}
+
+/* ========================================= */
 /* --- SPLIT LAYOUT FOR LARGE SCREENS --- */
 /* ========================================= */
 
@@ -2155,7 +2252,7 @@ input[type="text"]::placeholder {
 .split-layout {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 
 .split-layout-left,
@@ -2163,7 +2260,7 @@ input[type="text"]::placeholder {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 
 /* Large screens: two-column side-by-side layout */
@@ -2195,7 +2292,7 @@ input[type="text"]::placeholder {
     .split-layout {
         display: grid;
         grid-template-columns: 3fr 2fr;
-        gap: 30px;
+        gap: 10px;
         height: 100%;
         align-items: start;
     }
@@ -2208,7 +2305,7 @@ input[type="text"]::placeholder {
         padding-bottom: 20px;
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 20px;
     }
 
     /* Remove margin-bottom from last card in each column */

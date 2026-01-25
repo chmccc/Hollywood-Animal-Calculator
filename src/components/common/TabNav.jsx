@@ -1,10 +1,11 @@
 import Button from './Button';
 
-function TabNav({ currentTab, onTabChange }) {
+function TabNav({ currentTab, onTabChange, pinnedCount = 0 }) {
   const tabs = [
     { id: 'generator', label: 'Script Generator' },
     { id: 'synergy', label: 'SE Compatibility' },
-    { id: 'advertisers', label: 'Best Advertisers' }
+    { id: 'advertisers', label: 'Advertising' },
+    { id: 'pinned', label: pinnedCount > 0 ? `Pinned Scripts (${pinnedCount})` : 'Pinned Scripts' }
   ];
 
   return (

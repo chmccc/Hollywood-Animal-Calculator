@@ -238,6 +238,44 @@
 }
 
 /* ========================================= */
+/* --- COLLAPSIBLE HEADER --- */
+/* ========================================= */
+
+/* All headers are clickable */
+.layout-card-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+.layout-card-header:hover {
+    background: linear-gradient(
+        180deg,
+        rgba(212, 175, 55, 0.08) 0%,
+        rgba(212, 175, 55, 0.02) 100%
+    );
+}
+
+.layout-card-header:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+/* Hide diamond when collapsed */
+.layout-card.is-collapsed .layout-card-header-diamond {
+    display: none;
+}
+
+/* When collapsed, hide the header border */
+.layout-card.is-collapsed .layout-card-header::before {
+    display: none;
+}
+
+/* Adjust header padding when collapsed */
+.layout-card.is-collapsed .layout-card-header {
+    padding-bottom: 16px;
+}
+
+/* ========================================= */
 /* --- RESPONSIVE --- */
 /* ========================================= */
 
