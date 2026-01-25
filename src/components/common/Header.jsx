@@ -15,7 +15,7 @@ function Header() {
       <div className="header-content">
         <div className="logo-area">
           <div className="logo-title-group">
-            <h1>Hollywood <span className="accent">Animal</span></h1>
+            <h1><span>Hollywood</span> <span className="accent">Animal</span></h1>
             <span className="header-subtitle">Unofficial Calculator Tool</span>
           </div>
         </div>
@@ -40,7 +40,7 @@ function Header() {
               </div>
             ) : (
               <Button 
-                size="sm"
+                size="md"
                 variant="primary"
                 onClick={() => setIsModalOpen(true)}
                 title="Load Save"

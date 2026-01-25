@@ -75,7 +75,7 @@ function SaveImportModal({ isOpen, onClose }) {
       <div className="modal-content save-import-modal">
         <div className="modal-header">
           <h3>Load Save File</h3>
-          <Button size="icon" variant="ghost" onClick={onClose}>×</Button>
+          <Button size="icon" variant="primary" onClick={onClose}>×</Button>
         </div>
 
         <div className="modal-body">
@@ -113,6 +113,7 @@ function SaveImportModal({ isOpen, onClose }) {
             <Button 
               size="lg"
               fullWidth
+              variant="primary"
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
               title={isLoading ? 'Loading...' : 'Choose File...'}

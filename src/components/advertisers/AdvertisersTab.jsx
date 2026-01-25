@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAudienceAnalysis } from '../../hooks/useAudienceAnalysis';
-import Card from '../common/Card';
+import LayoutCard from '../common/LayoutCard';
 import Button from '../common/Button';
 import Slider from '../common/Slider';
-import SearchBar from '../common/SearchBar';
+import QuickSearchCard from '../common/QuickSearchCard';
 import CategorySelector from '../common/CategorySelector';
 import DistributionCalculator from './DistributionCalculator';
 import TargetAudience from './TargetAudience';
@@ -135,19 +135,14 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
       <div className="split-layout">
         {/* Left Column - Form */}
         <div className="split-layout-left">
-          <Card className="search-card">
-            <h3>Quick Search</h3>
-            <SearchBar
-              onSelect={handleSearchSelect}
-              placeholder="Type to find a tag (e.g., 'Action', 'Cowboy')..."
-            />
-          </Card>
+          <QuickSearchCard onSelect={handleSearchSelect} />
 
-          <Card className="score-card">
-            <div className="card-header">
-              <h3>Movie Scores</h3>
-              <span className="score-help">0 - 10</span>
-            </div>
+          <LayoutCard
+            className="score-card"
+            title="Movie Scores"
+            subtitle="Set expected Commercial and Art scores for your movie."
+            headerActions={<span className="score-help">0 - 10</span>}
+          >
             <div className="score-controls-wrapper">
               <Slider
                 label="Commercial"
@@ -170,15 +165,14 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
                 color="#a0a0ff"
               />
             </div>
-          </Card>
+          </LayoutCard>
 
-          <Card className="builder-card">
-            <div className="card-header">
-              <h3>Build Your Script</h3>
-              <Button size="sm" variant="primary" onClick={handleReset} title="Reset" />
-            </div>
-            <p className="subtitle">Select tags manually or use the search bar above. Add multiple genres to adjust their influence.</p>
-            
+          <LayoutCard
+            className="builder-card"
+            title="Build Your Script"
+            subtitle="Select tags manually or use the search bar above. Add multiple genres to adjust their influence."
+            headerActions={<Button size="sm" variant="primary" onClick={handleReset} title="Reset" />}
+          >
             <div id="selectors-container-advertisers">
               {categories.map(category => (
                 <CategorySelector
@@ -196,7 +190,7 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
             <div className="action-area">
               <Button variant="primary" size="lg" fullWidth onClick={handleAnalyze} title="Analyse" />
             </div>
-          </Card>
+          </LayoutCard>
 
           {/* Distribution Calculator (always visible) */}
           <DistributionCalculator
@@ -210,7 +204,7 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
 
         {/* Right Column - Results */}
         <div className="split-layout-right">
-          {results && (
+          {results ? (
             <div id="results-advertisers" className="results-container">
               <TargetAudience
                 targetAudiences={results.targetAudiences}
@@ -227,8 +221,11 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
                   hasTargetAudience={results.targetAudiences.length > 0}
                 />
                 
-                <Card className="result-card strategy-card">
-                  <h3>Recommended Advertisement Duration</h3>
+                <LayoutCard 
+                  className="result-card strategy-card"
+                  title="Advertisement Duration"
+                  subtitle="Recommended campaign timing for your movie."
+                >
                   <div id="campaignStrategyDisplay">
                     <div className="strategy-row">
                       <div className="campaign-block pre">
@@ -251,7 +248,15 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
                       Total Duration: <strong style={{ color: '#fff' }}>{results.campaign.totalWeeks} Weeks</strong>
                     </div>
                   </div>
-                </Card>
+                </LayoutCard>
+              </div>
+            </div>
+          ) : (
+            <div className="validation-placeholder">
+              <div className="validation-placeholder-content">
+                <span className="validation-status-text">
+                  Click "Analyse" to see audience insights and advertising recommendations.
+                </span>
               </div>
             </div>
           )}

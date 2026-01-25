@@ -92,6 +92,7 @@ function CategorySelector({
         {isMultiSelect && (
           <Button
             size="icon"
+            variant="primary"
             onClick={() => addDropdown()}
           >
             +
@@ -140,7 +141,7 @@ function CategorySelector({
             {isMultiSelect && displayTags.length > 1 && (
               <Button
                 size="icon"
-                variant="ghost"
+                variant="primary"
                 onClick={() => removeTag(index)}
               >
                 ×

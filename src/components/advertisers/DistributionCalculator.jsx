@@ -1,15 +1,14 @@
-import Card from '../common/Card';
+import LayoutCard from '../common/LayoutCard';
 
 function DistributionCalculator({ comScore, ownedScreenings, onOwnedScreeningsChange, distributionResults, isFromSave }) {
   return (
-    <div id="dist-calc-anchor" style={{ marginTop: '25px' }}>
-      <Card 
-        className="result-card" 
-        style={{ borderLeft: '4px solid var(--accent)', transition: 'all 0.5s ease' }}
-      >
-        <div className="card-header">
-          <h3>Distribution Calculator</h3>
-          {isFromSave && (
+    <div id="dist-calc-anchor">
+      <LayoutCard 
+        className="result-card"
+        title="Distribution Calculator"
+        subtitle={<>Screenings needed for independent distribution.<br />Adjust the Commercial Score above to see changes.</>}
+        headerActions={
+          isFromSave && (
             <span 
               className="save-indicator"
               title="Value loaded from save file"
@@ -19,15 +18,14 @@ function DistributionCalculator({ comScore, ownedScreenings, onOwnedScreeningsCh
                 background: 'rgba(212, 175, 55, 0.15)',
                 border: '1px solid rgba(212, 175, 55, 0.3)',
                 borderRadius: '4px',
-                color: 'var(--accent)',
-                marginLeft: 'auto'
+                color: 'var(--accent)'
               }}
             >
               From Save
             </span>
-          )}
-        </div>
-        
+          )
+        }
+      >
         <div className="dist-input-row">
           <div className="dist-input-group">
             <label htmlFor="ownedScreeningsInput">Owned Theatres (Screenings)</label>
@@ -48,10 +46,6 @@ function DistributionCalculator({ comScore, ownedScreenings, onOwnedScreeningsCh
             </span>
           </div>
         </div>
-        
-        <p className="subtitle" style={{ marginTop: '-10px', marginBottom: '20px' }}>
-          Screenings needed for independent distribution. Adjust the <strong>Commercial Score</strong> above to see changes.
-        </p>
 
         <div id="dist-results-grid" className="dist-grid">
           {distributionResults.map((val, index) => (
@@ -67,7 +61,7 @@ function DistributionCalculator({ comScore, ownedScreenings, onOwnedScreeningsCh
             </div>
           ))}
         </div>
-      </Card>
+      </LayoutCard>
     </div>
   );
 }

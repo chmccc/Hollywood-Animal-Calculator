@@ -1,9 +1,12 @@
-import Card from '../common/Card';
+import LayoutCard from '../common/LayoutCard';
 
 function HolidayList({ viableHolidays }) {
   return (
-    <Card className="result-card">
-      <h3>Holiday Release</h3>
+    <LayoutCard 
+      className="result-card"
+      title="Holiday Release"
+      subtitle="Release timing bonuses based on your target audience."
+    >
       <div id="holidayDisplay" className="holiday-list-container">
         {viableHolidays.length === 0 ? (
           <div className="holiday-row-empty">
@@ -39,7 +42,7 @@ function HolidayList({ viableHolidays }) {
           </>
         )}
       </div>
-    </Card>
+    </LayoutCard>
   );
 }
 

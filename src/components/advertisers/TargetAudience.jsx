@@ -1,19 +1,21 @@
-import Card from '../common/Card';
+import LayoutCard from '../common/LayoutCard';
 
 function TargetAudience({ targetAudiences, thresholds }) {
   return (
-    <Card className="result-card">
-      <div className="card-header-row">
-        <h3>Target Audience</h3>
-      </div>
-      <div className="audience-legend">
-        <div className="legend-item">
-          <span className="legend-dot best"></span> High Interest
+    <LayoutCard 
+      className="result-card"
+      title="Target Audience"
+      headerActions={
+        <div className="audience-legend">
+          <div className="legend-item">
+            <span className="legend-dot best"></span> High Interest
+          </div>
+          <div className="legend-item">
+            <span className="legend-dot moderate"></span> Moderate Interest
+          </div>
         </div>
-        <div className="legend-item">
-          <span className="legend-dot moderate"></span> Moderate Interest
-        </div>
-      </div>
+      }
+    >
       <div id="targetAudienceDisplay" className="landscape-content">
         {targetAudiences.length > 0 ? (
           targetAudiences.map(d => {
@@ -30,7 +32,7 @@ function TargetAudience({ targetAudiences, thresholds }) {
           </div>
         )}
       </div>
-    </Card>
+    </LayoutCard>
   );
 }
 

@@ -4,9 +4,9 @@ import { useSynergyCalculation } from '../../hooks/useSynergyCalculation';
 import { useScriptGenerator } from '../../hooks/useScriptGenerator';
 import { useAudienceAnalysis } from '../../hooks/useAudienceAnalysis';
 import { MULTI_SELECT_CATEGORIES } from '../../data/gameData';
-import Card from '../common/Card';
+import LayoutCard from '../common/LayoutCard';
 import Button from '../common/Button';
-import SearchBar from '../common/SearchBar';
+import QuickSearchCard from '../common/QuickSearchCard';
 import CategorySelector from '../common/CategorySelector';
 import TagBrowser from '../common/TagBrowser';
 import SynergyResults from './SynergyResults';
@@ -413,30 +413,28 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
       <div className="split-layout">
         {/* Left Column - Form */}
         <div className="split-layout-left">
-          <Card className="search-card">
-            <h3>Quick Search</h3>
-            <SearchBar
-              onSelect={handleSearchSelect}
-              placeholder="Type to find a tag (e.g., 'Action', 'Cowboy')..."
-            />
-          </Card>
+          <QuickSearchCard onSelect={handleSearchSelect} />
 
-          <Card className="builder-card">
-            <div className="card-header">
-              <h3>Check Compatibility</h3>
-              <div className="header-controls">
+          <LayoutCard 
+            className="builder-card"
+            title="Check Compatibility"
+            subtitle={
+              <>
+                Select story elements to see how well they fit together.
+                {ownedTagIds && <span> Max optional elements: {maxTagSlots - 1}.</span>}
+              </>
+            }
+            headerActions={
+              <>
                 <Button
                   size="sm"
                   onClick={() => setInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
                   title={inputMode === 'dropdown' ? 'Browse Mode' : 'Dropdown Mode'}
                 />
                 <Button size="sm" variant="primary" onClick={handleReset} title="Reset" />
-              </div>
-            </div>
-            <p className="subtitle">
-              Select story elements to see how well they fit together.
-              {ownedTagIds && <span> Max optional elements: {maxTagSlots - 1}.</span>}
-            </p>
+              </>
+            }
+          >
             
             {inputMode === 'dropdown' ? (
               <div id="selectors-container-synergy">
@@ -515,7 +513,7 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                 </div>
               )
             )}
-          </Card>
+          </LayoutCard>
         </div>
 
         {/* Right Column - Results */}
@@ -556,12 +554,12 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
           )}
 
           {/* Pinned Scripts - shared with Generator tab */}
-          <div id="pinned-scripts-container" className="results-container">
-            <div className="pinned-header-row">
-              <div className="section-title" style={{ marginBottom: 0 }}>
-                <h3 style={{ color: 'var(--accent)', margin: 0 }}>Pinned Scripts</h3>
-              </div>
-              <div className="file-controls">
+          <LayoutCard
+            id="pinned-scripts-container"
+            title="Pinned Scripts"
+            subtitle="Save your favorite script combinations for later."
+            headerActions={
+              <>
                 <Button size="sm" variant="primary" onClick={handleExport} title="⬇ Save" />
                 <Button size="sm" variant="primary" onClick={handleImportClick} title="⬆ Load" />
                 <input
@@ -572,8 +570,9 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                   onChange={handleFileChange}
                   style={{ display: 'none' }}
                 />
-              </div>
-            </div>
+              </>
+            }
+          >
             <div id="pinnedResultsList" className="script-list">
               {pinnedScripts.length === 0 ? (
                 <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem', padding: '10px 0' }}>
@@ -592,7 +591,7 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                 ))
               )}
             </div>
-          </div>
+          </LayoutCard>
         </div>
       </div>
     </div>

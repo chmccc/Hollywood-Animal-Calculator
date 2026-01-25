@@ -1,4 +1,4 @@
-import Card from '../common/Card';
+import LayoutCard from '../common/LayoutCard';
 
 function AdvertiserResults({ validAgents, movieLean, leanText, hasTargetAudience }) {
   const leanColor = movieLean === 1 ? '#a0a0ff' : movieLean === 2 ? '#d4af37' : '#fff';
@@ -10,9 +10,11 @@ function AdvertiserResults({ validAgents, movieLean, leanText, hasTargetAudience
   };
 
   return (
-    <Card className="result-card">
-      <h3>Recommended Advertisers</h3>
-      <div className="list-subtitle">Ranked from Highest to Lowest</div>
+    <LayoutCard 
+      className="result-card"
+      title="Recommended Advertisers"
+      subtitle="Ranked from highest to lowest."
+    >
       <div className="strategy-content">
         <div className="stat-row">
           <span className="label">Movie Lean Towards:</span>
@@ -37,7 +39,7 @@ function AdvertiserResults({ validAgents, movieLean, leanText, hasTargetAudience
           )}
         </div>
       </div>
-    </Card>
+    </LayoutCard>
   );
 }
 

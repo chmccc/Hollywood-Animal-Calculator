@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useScriptGenerator } from '../../hooks/useScriptGenerator';
-import Card from '../common/Card';
+import LayoutCard from '../common/LayoutCard';
 import Button from '../common/Button';
 import Slider from '../common/Slider';
 import CategorySelector from '../common/CategorySelector';
@@ -190,16 +190,19 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
       <div className="split-layout">
         {/* Left Column - Form */}
         <div className="split-layout-left">
-          <Card className="builder-card">
-            <div className="card-header">
-              <h3>Generator Settings</h3>
-              {ownedTagIds && (
+          {/* Generator Settings */}
+          <LayoutCard
+            className="settings-card"
+            title="Generator Settings"
+            subtitle="Configure target scores for script generation."
+            headerActions={
+              ownedTagIds && (
                 <span className="save-indicator">
                   Using {ownedTagIds.size} tags from save
                 </span>
-              )}
-            </div>
-
+              )
+            }
+          >
             <div className="score-controls-wrapper">
               <Slider
                 label="Target Average Compatibility"
@@ -224,16 +227,17 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                 subtitle={<span style={{ color: 'var(--accent)' }}>{getRequiredTagsText()}</span>}
               />
             </div>
+          </LayoutCard>
 
-            <div className="divider-line"></div>
-
-            {/* Locked Elements */}
-            <div className="card-header">
-              <h3>Locked Elements</h3>
+          {/* Locked Elements */}
+          <LayoutCard
+            className="locked-card"
+            title="Locked Elements"
+            subtitle={<>Select specific tags you <strong>MUST</strong> have in the script.</>}
+            headerActions={
               <Button size="sm" variant="primary" onClick={handleResetLocks} title="Reset Locks" />
-            </div>
-            <p className="subtitle">Select specific tags you <strong>MUST</strong> have in the script.</p>
-            
+            }
+          >
             <div id="selectors-container-generator">
               {categories.map(category => (
                 <CategorySelector
@@ -247,24 +251,25 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                 />
               ))}
             </div>
+          </LayoutCard>
 
-            <div className="divider-line"></div>
-
-            {/* Excluded Elements */}
-            <div className="card-header">
-              <h3 style={{ color: 'var(--danger)' }}>Excluded Elements</h3>
-              <div className="header-controls">
+          {/* Excluded Elements */}
+          <LayoutCard
+            className="excluded-card"
+            title={<span style={{ color: 'var(--danger)' }}>Excluded Elements</span>}
+            subtitle={<>Select tags to <strong>BAN</strong> (e.g., due to "The Code"). The generator will never pick these.</>}
+            headerActions={
+              <>
                 <Button
                   size="sm"
                   onClick={() => setExcludedInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
                   title={excludedInputMode === 'dropdown' ? 'Browse Mode' : 'Dropdown Mode'}
                 />
-                <Button size="sm" onClick={handleSaveExclusions} title="Save" />
+                <Button size="sm" variant="primary" onClick={handleSaveExclusions} title="Save" />
                 <Button size="sm" variant="primary" onClick={handleResetExcluded} title="Reset" />
-              </div>
-            </div>
-            <p className="subtitle">Select tags to <strong>BAN</strong> (e.g., due to "The Code"). The generator will never pick these.</p>
-
+              </>
+            }
+          >
             {excludedInputMode === 'dropdown' ? (
               <div id="selectors-container-excluded">
                 {categories.map(category => (
@@ -285,22 +290,53 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                 variant="excluded"
               />
             )}
+          </LayoutCard>
 
-            <div className="action-area">
-              <Button variant="primary" size="lg" fullWidth onClick={handleGenerate} title="Generate Scripts" />
-            </div>
-          </Card>
+          {/* Generate Button - outside cards */}
+          <div className="action-area">
+            <Button variant="primary" size="lg" fullWidth onClick={handleGenerate} title="Generate Scripts" />
+          </div>
         </div>
 
         {/* Right Column - Results */}
         <div className="split-layout-right">
-          {/* Pinned Scripts */}
-          <div id="pinned-scripts-container" className="results-container">
-            <div className="pinned-header-row">
-              <div className="section-title" style={{ marginBottom: 0 }}>
-                <h3 style={{ color: 'var(--accent)', margin: 0 }}>Pinned Scripts</h3>
+          {/* Generated Scripts */}
+          {generatedScripts.length > 0 ? (
+            <LayoutCard
+              id="results-generator"
+              title="Generated Options"
+            >
+              <div id="generatorResultsList" className="script-list">
+                {generatedScripts.map(script => (
+                  <ScriptCard
+                    key={script.uniqueId}
+                    script={script}
+                    isPinned={pinnedScripts.some(p => String(p.uniqueId) === String(script.uniqueId))}
+                    onTogglePin={() => togglePin(script.uniqueId)}
+                    onTransfer={onTransferToAdvertisers}
+                    onExcludeTag={handleExcludeFromResult}
+                    lockedTagIds={lockedTagIds}
+                  />
+                ))}
               </div>
-              <div className="file-controls">
+            </LayoutCard>
+          ) : (
+            <div className="validation-placeholder">
+              <div className="validation-placeholder-content">
+                <span className="validation-status-text">
+                  Click "Generate Scripts" to create optimized script combinations.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Pinned Scripts */}
+          <LayoutCard
+            id="pinned-scripts-container"
+            title="Pinned Scripts"
+            subtitle="Save your favorite script combinations for later."
+            headerActions={
+              <>
                 <Button size="sm" variant="primary" onClick={handleExport} title="⬇ Save" />
                 <Button size="sm" variant="primary" onClick={handleImportClick} title="⬆ Load" />
                 <input
@@ -311,8 +347,9 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                   onChange={handleFileChange}
                   style={{ display: 'none' }}
                 />
-              </div>
-            </div>
+              </>
+            }
+          >
             <div id="pinnedResultsList" className="script-list">
               {pinnedScripts.length === 0 ? (
                 <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.9rem', padding: '10px 0' }}>
@@ -332,29 +369,7 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                 ))
               )}
             </div>
-          </div>
-
-          {/* Generated Scripts */}
-          {generatedScripts.length > 0 && (
-            <div id="results-generator" className="results-container">
-              <div className="section-title">
-                <h3>Generated Options</h3>
-              </div>
-              <div id="generatorResultsList" className="script-list">
-                {generatedScripts.map(script => (
-                  <ScriptCard
-                    key={script.uniqueId}
-                    script={script}
-                    isPinned={pinnedScripts.some(p => String(p.uniqueId) === String(script.uniqueId))}
-                    onTogglePin={() => togglePin(script.uniqueId)}
-                    onTransfer={onTransferToAdvertisers}
-                    onExcludeTag={handleExcludeFromResult}
-                    lockedTagIds={lockedTagIds}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          </LayoutCard>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { formatScore, formatSimpleScore, formatFinalRating } from '../../utils/calculations';
 import TargetAudience from '../advertisers/TargetAudience';
+import LayoutCard from '../common/LayoutCard';
 import Button from '../common/Button';
 
 function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = false }) {
@@ -40,76 +41,70 @@ function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = f
         </div>
       </div>
 
-      <div className="card result-card breakdown-container">
-        <div className="breakdown-col left-col">
-          <h4 className="col-header">Bonuses</h4>
-          <div className="breakdown-row">
-            <span className="b-label">Script Synergy:</span>
-            <span 
-              className="b-value"
-              style={{ color: baseScoreColor }}
-            >
-              {formatScore(totalScore)}
-            </span>
-          </div>
-          <div className="breakdown-row">
-            <span className="b-label">Commercial Bonus:</span>
-            <span 
-              className="b-value"
-              style={{ color: bonuses.com > 0 ? 'var(--success)' : bonuses.com < 0 ? 'var(--danger)' : '#fff' }}
-            >
-              {formatSimpleScore(bonuses.com)}
-            </span>
-          </div>
-          <div className="breakdown-row">
-            <span className="b-label">Artistic Bonus:</span>
-            <span 
-              className="b-value"
-              style={{ color: bonuses.art > 0 ? '#a0a0ff' : bonuses.art < 0 ? 'var(--danger)' : '#fff' }}
-            >
-              {formatSimpleScore(bonuses.art)}
-            </span>
-          </div>
-          <p className="context-text">
-            Script synergy is the foundation of your movie score, scaled by your scriptwriter's skill.
-          </p>
-        </div>
-        <div className="breakdown-col right-col">
-          <h4 className="col-header highlight-header">Potential Movie Score</h4>
-          <div className="total-row">
-            <span className="t-label">Commercial Movie Score:</span>
-            <span 
-              className="t-value"
-              style={{ color: displayCom > 0 ? 'var(--accent)' : 'var(--danger)' }}
-            >
-              {formatFinalRating(displayCom)}
-            </span>
-          </div>
-          <div className="total-row">
-            <span className="t-label">Artistic Movie Score:</span>
-            <span 
-              className="t-value"
-              style={{ color: displayArt > 0 ? '#a0a0ff' : 'var(--danger)' }}
-            >
-              {formatFinalRating(displayArt)}
-            </span>
-          </div>
-          <div 
-            style={{ 
-              fontSize: '0.75rem', 
-              color: '#666', 
-              marginTop: '10px',
-              textAlign: 'right' 
-            }}
+      <LayoutCard 
+        className="result-card"
+        title="Bonuses"
+        subtitle="Script synergy is the foundation of your movie score, scaled by your scriptwriter's skill."
+      >
+        <div className="breakdown-row">
+          <span className="b-label">Script Synergy:</span>
+          <span 
+            className="b-value"
+            style={{ color: baseScoreColor }}
           >
-            Max Score Capped at <strong>{tagCap}.0</strong> ({ngCount} Scoring Elements)
-          </div>
+            {formatScore(totalScore)}
+          </span>
         </div>
-      </div>
+        <div className="breakdown-row">
+          <span className="b-label">Commercial Bonus:</span>
+          <span 
+            className="b-value"
+            style={{ color: bonuses.com > 0 ? 'var(--success)' : bonuses.com < 0 ? 'var(--danger)' : '#fff' }}
+          >
+            {formatSimpleScore(bonuses.com)}
+          </span>
+        </div>
+        <div className="breakdown-row">
+          <span className="b-label">Artistic Bonus:</span>
+          <span 
+            className="b-value"
+            style={{ color: bonuses.art > 0 ? '#a0a0ff' : bonuses.art < 0 ? 'var(--danger)' : '#fff' }}
+          >
+            {formatSimpleScore(bonuses.art)}
+          </span>
+        </div>
+      </LayoutCard>
 
-      <div className="card result-card" style={{ borderLeft: '4px solid var(--danger)' }}>
-        <h3>Conflicts</h3>
-        <div className="list-subtitle">Severe clashes that ruin the script</div>
+      <LayoutCard 
+        className="result-card"
+        title="Potential Movie Score"
+        subtitle={<>Max Score Capped at <strong>{tagCap}.0</strong> ({ngCount} Scoring Elements)</>}
+      >
+        <div className="total-row">
+          <span className="t-label">Commercial Movie Score:</span>
+          <span 
+            className="t-value"
+            style={{ color: displayCom > 0 ? 'var(--accent)' : 'var(--danger)' }}
+          >
+            {formatFinalRating(displayCom)}
+          </span>
+        </div>
+        <div className="total-row">
+          <span className="t-label">Artistic Movie Score:</span>
+          <span 
+            className="t-value"
+            style={{ color: displayArt > 0 ? '#a0a0ff' : 'var(--danger)' }}
+          >
+            {formatFinalRating(displayArt)}
+          </span>
+        </div>
+      </LayoutCard>
+
+      <LayoutCard 
+        className="result-card"
+        title="Conflicts"
+        subtitle="Severe clashes that ruin the script."
+      >
         <div className="strategy-content">
           {spoilers.length > 0 ? (
             [...new Set(spoilers)].map((spoiler, index) => (
@@ -130,7 +125,7 @@ function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = f
             </div>
           )}
         </div>
-      </div>
+      </LayoutCard>
 
       {audienceData && (
         <TargetAudience
