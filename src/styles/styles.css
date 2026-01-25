@@ -298,6 +298,12 @@ header::after {
     flex-wrap: wrap;
 }
 
+.logo-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 h1 {
     font-size: 2rem;
     font-weight: 700;
@@ -309,12 +315,12 @@ h1 {
 
 .header-subtitle {
     color: var(--text-main);
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     font-weight: 400;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     font-family: 'Cinzel', serif;
-    opacity: 0.85;
+    opacity: 0.55;
 }
 
 .accent { color: var(--accent); }
@@ -1890,6 +1896,45 @@ input[type="text"]::placeholder {
 .tag-browser-card.tag-disabled:hover {
     transform: none;
     box-shadow: none;
+}
+
+/* Banned tag overlay for codex-restricted tags */
+.tag-browser-card.tag-banned {
+    position: relative;
+}
+
+.tag-browser-card.tag-banned::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(180, 50, 50, 0.2);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.banned-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    background: rgba(180, 50, 50, 0.25);
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 2;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: opacity 0.15s ease;
+}
+
+/* Hide banned overlay on hover */
+.tag-browser-card.tag-banned:hover::after,
+.tag-browser-card.tag-banned:hover .banned-overlay {
+    opacity: 0;
 }
 
 /* Disabled category header indicator */

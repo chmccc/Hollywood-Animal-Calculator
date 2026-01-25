@@ -86,7 +86,7 @@ export function useScriptGenerator() {
         movieScore: '0.0'
       },
       uniqueId: `save-movie-${movie.id}`,
-      name: movie.name || `Movie ${movie.id}`,
+      name: (movie.name || `Movie ${movie.id}`).toUpperCase(),
       fromSave: true,
       movieId: movie.id,
       currentStage: movie.currentStage,
@@ -362,7 +362,7 @@ export function useScriptGenerator() {
       const script = generatedScripts.find(s => String(s.uniqueId) === String(uniqueId));
       if (script) {
         const newPinned = JSON.parse(JSON.stringify(script));
-        if (!newPinned.name) newPinned.name = "Untitled Script";
+        if (!newPinned.name) newPinned.name = "UNTITLED SCRIPT";
         savePinnedScripts([...pinnedScripts, newPinned]);
       }
     }
@@ -377,7 +377,7 @@ export function useScriptGenerator() {
     }
     
     const newPinned = JSON.parse(JSON.stringify(script));
-    if (!newPinned.name) newPinned.name = "Untitled Script";
+    if (!newPinned.name) newPinned.name = "UNTITLED SCRIPT";
     savePinnedScripts([...pinnedScripts, newPinned]);
     return { success: true };
   }, [pinnedScripts, savePinnedScripts]);

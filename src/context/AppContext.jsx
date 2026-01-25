@@ -10,6 +10,8 @@ const STORAGE_KEY_SAVE_SOURCE = 'saveSourceName';
 const STORAGE_KEY_MOVIES_IN_PROD = 'moviesInProduction';
 const STORAGE_KEY_MAX_TAG_SLOTS = 'maxTagSlots';
 const STORAGE_KEY_STUDIO_NAME = 'studioName';
+const STORAGE_KEY_OWNED_THEATRES = 'ownedTheatres';
+const STORAGE_KEY_CODEX_BANNED = 'codexBannedTags';
 
 // Helper function to beautify tag names
 function beautifyTagName(rawId, localizationMap = {}) {
@@ -91,6 +93,24 @@ export function AppProvider({ children }) {
 
   const [studioName, setStudioName] = useState(() => {
     return localStorage.getItem(STORAGE_KEY_STUDIO_NAME) || null;
+  });
+
+  const [ownedTheatres, setOwnedTheatres] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_OWNED_THEATRES);
+      return saved ? parseInt(saved, 10) : null; // null means no save loaded
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [codexBannedTags, setCodexBannedTags] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_CODEX_BANNED);
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch (e) {
+      return new Set();
+    }
   });
 
   // Load localization - do this FIRST
@@ -224,7 +244,9 @@ export function AppProvider({ children }) {
       tagIds, 
       moviesInProduction: movies, 
       maxTagSlots: slots, 
-      studioName: studio, 
+      studioName: studio,
+      ownedTheatres: theatres,
+      codexBannedTags: bannedTags,
       error 
     } = parseSaveFile(jsonString);
     
@@ -238,6 +260,8 @@ export function AppProvider({ children }) {
     setMoviesInProduction(movies || []);
     setMaxTagSlots(slots || 10);
     setStudioName(studio || null);
+    setOwnedTheatres(theatres ?? 0);
+    setCodexBannedTags(bannedTags || new Set());
     
     // Persist to localStorage
     try {
@@ -245,6 +269,8 @@ export function AppProvider({ children }) {
       localStorage.setItem(STORAGE_KEY_SAVE_SOURCE, sourceName);
       localStorage.setItem(STORAGE_KEY_MOVIES_IN_PROD, JSON.stringify(movies || []));
       localStorage.setItem(STORAGE_KEY_MAX_TAG_SLOTS, String(slots || 10));
+      localStorage.setItem(STORAGE_KEY_OWNED_THEATRES, String(theatres ?? 0));
+      localStorage.setItem(STORAGE_KEY_CODEX_BANNED, JSON.stringify([...(bannedTags || [])]));
       if (studio) {
         localStorage.setItem(STORAGE_KEY_STUDIO_NAME, studio);
       } else {
@@ -264,6 +290,8 @@ export function AppProvider({ children }) {
     setMoviesInProduction([]);
     setMaxTagSlots(10); // Reset to default
     setStudioName(null);
+    setOwnedTheatres(null); // Reset to null (no save loaded)
+    setCodexBannedTags(new Set());
     
     try {
       localStorage.removeItem(STORAGE_KEY_OWNED_TAGS);
@@ -271,6 +299,8 @@ export function AppProvider({ children }) {
       localStorage.removeItem(STORAGE_KEY_MOVIES_IN_PROD);
       localStorage.removeItem(STORAGE_KEY_MAX_TAG_SLOTS);
       localStorage.removeItem(STORAGE_KEY_STUDIO_NAME);
+      localStorage.removeItem(STORAGE_KEY_OWNED_THEATRES);
+      localStorage.removeItem(STORAGE_KEY_CODEX_BANNED);
     } catch (e) {
       console.error('Failed to clear localStorage:', e);
     }
@@ -303,7 +333,9 @@ export function AppProvider({ children }) {
     // Additional save data
     moviesInProduction,
     maxTagSlots,
-    studioName
+    studioName,
+    ownedTheatres,
+    codexBannedTags
   };
 
   return (

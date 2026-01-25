@@ -34,7 +34,7 @@ function getDeltaClass(value) {
  * @param {number} maxOptionalTags - Optional maximum number of tags allowed from optional categories (default: 10)
  */
 function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas = {}, showDeltas = false, renderCategoryExtra = null, optionalCategories = [], maxOptionalTags = 10 }) {
-  const { categories, getTagsByCategory, tags } = useApp();
+  const { categories, getTagsByCategory, tags, codexBannedTags } = useApp();
   
   // Track which categories are expanded (all start collapsed)
   const [expandedCategories, setExpandedCategories] = useState(() => 
@@ -148,17 +148,21 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                 // Note: isCategoryDisabled already accounts for single-select swap possibility
                 const isTagDisabled = isCategoryDisabled && !isSelected;
 
+                // Check if tag is banned by the codex
+                const isBanned = codexBannedTags && codexBannedTags.has(tag.id);
+
                 // Category class for styling
                 const categoryClass = `cat-${category.toLowerCase().replace(/\s+&?\s*/g, '-')}`;
 
                 return (
                   <button
                     key={tag.id}
-                    className={`tag-browser-card ${categoryClass} ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${isTagDisabled ? 'tag-disabled' : ''}`.trim()}
+                    className={`tag-browser-card ${categoryClass} ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${isTagDisabled ? 'tag-disabled' : ''} ${isBanned ? 'tag-banned' : ''}`.trim()}
                     onClick={() => !isTagDisabled && handleCardClick(tag.id, category)}
                     type="button"
                     disabled={isTagDisabled}
                   >
+                    {isBanned && <span className="banned-overlay">BANNED</span>}
                     <span className="tag-name">{tag.name}</span>
                     {showDeltas && (
                       <span className="tag-deltas">

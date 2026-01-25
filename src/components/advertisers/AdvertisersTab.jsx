@@ -12,8 +12,10 @@ import HolidayList from './HolidayList';
 import AdvertiserResults from './AdvertiserResults';
 import { collectTagInputs } from '../../utils/tagHelpers';
 
+const DEFAULT_OWNED_SCREENINGS = 0;
+
 function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
-  const { categories, isLoading, ownedTagIds } = useApp();
+  const { categories, isLoading, ownedTagIds, ownedTheatres } = useApp();
   const { analyzeMovie, calculateDistribution } = useAudienceAnalysis();
   
   const [selectedTags, setSelectedTags] = useState([]);
@@ -21,7 +23,10 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
   const [comScore, setComScore] = useState(5.0);
   const [artScore, setArtScore] = useState(5.0);
   const [results, setResults] = useState(null);
-  const [ownedScreenings, setOwnedScreenings] = useState(3185);
+  const [ownedScreenings, setOwnedScreenings] = useState(() => {
+    // Initialize from context if save is loaded, otherwise use default
+    return ownedTheatres ?? DEFAULT_OWNED_SCREENINGS;
+  });
   const [initialized, setInitialized] = useState(false);
 
   // Initialize with one empty tag per category
@@ -110,8 +115,14 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
     if (prevSaveLoadedRef.current !== saveLoaded) {
       prevSaveLoadedRef.current = saveLoaded;
       handleReset();
+      // Update owned screenings based on save state
+      if (saveLoaded && ownedTheatres !== null) {
+        setOwnedScreenings(ownedTheatres);
+      } else {
+        setOwnedScreenings(DEFAULT_OWNED_SCREENINGS);
+      }
     }
-  }, [ownedTagIds, handleReset]);
+  }, [ownedTagIds, ownedTheatres, handleReset]);
 
   const distributionResults = calculateDistribution(comScore, ownedScreenings);
 
@@ -193,6 +204,7 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
             ownedScreenings={ownedScreenings}
             onOwnedScreeningsChange={setOwnedScreenings}
             distributionResults={distributionResults}
+            isFromSave={ownedTheatres !== null && ownedScreenings === ownedTheatres}
           />
         </div>
 

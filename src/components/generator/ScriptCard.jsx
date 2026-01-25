@@ -41,13 +41,14 @@ function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, o
               <input
                 type="text"
                 className="script-name-input"
-                value={script.name || 'Untitled Script'}
+                value={(script.name || 'Untitled Script').toUpperCase()}
                 onClick={(e) => e.stopPropagation()}
-                onChange={(e) => onNameChange(e.target.value)}
-                placeholder="Script Name"
+                onChange={(e) => onNameChange(e.target.value.toUpperCase())}
+                placeholder="SCRIPT NAME"
+                style={{ textTransform: 'uppercase' }}
               />
             ) : (
-              <span className="script-name-display">{script.name || 'Untitled Script'}</span>
+              <span className="script-name-display">{(script.name || 'Untitled Script').toUpperCase()}</span>
             )}
           </div>
           {!script.fromSave && (
@@ -116,10 +117,11 @@ function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, o
           })}
         </div>
         <div className="gen-actions">
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            {script.fromSave && <span className="from-save-indicator">From Save · </span>}
-            ID: {String(script.uniqueId).slice(-6)}
-          </span>
+          {script.fromSave && (
+            <span className="from-save-indicator" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              From Save
+            </span>
+          )}
           {onTransfer && (
             <Button size="sm" variant="primary" onClick={handleTransfer} title="Find Best Advertisers →" />
           )}

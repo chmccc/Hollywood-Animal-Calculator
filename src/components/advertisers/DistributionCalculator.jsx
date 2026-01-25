@@ -1,6 +1,6 @@
 import Card from '../common/Card';
 
-function DistributionCalculator({ comScore, ownedScreenings, onOwnedScreeningsChange, distributionResults }) {
+function DistributionCalculator({ comScore, ownedScreenings, onOwnedScreeningsChange, distributionResults, isFromSave }) {
   return (
     <div id="dist-calc-anchor" style={{ marginTop: '25px' }}>
       <Card 
@@ -9,6 +9,23 @@ function DistributionCalculator({ comScore, ownedScreenings, onOwnedScreeningsCh
       >
         <div className="card-header">
           <h3>Distribution Calculator</h3>
+          {isFromSave && (
+            <span 
+              className="save-indicator"
+              title="Value loaded from save file"
+              style={{
+                fontSize: '0.7rem',
+                padding: '2px 8px',
+                background: 'rgba(212, 175, 55, 0.15)',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
+                borderRadius: '4px',
+                color: 'var(--accent)',
+                marginLeft: 'auto'
+              }}
+            >
+              From Save
+            </span>
+          )}
         </div>
         
         <div className="dist-input-row">
@@ -22,6 +39,7 @@ function DistributionCalculator({ comScore, ownedScreenings, onOwnedScreeningsCh
               onChange={(e) => onOwnedScreeningsChange(parseInt(e.target.value) || 0)}
               min={0}
               step={1}
+              style={isFromSave ? { borderColor: 'rgba(212, 175, 55, 0.5)' } : undefined}
             />
           </div>
           <div className="dist-info-group">

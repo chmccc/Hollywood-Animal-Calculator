@@ -2,7 +2,7 @@
  * Parse a Hollywood Animal save.json file and extract game data.
  * 
  * @param {string} jsonString - The raw JSON string content of the save file
- * @returns {Object} - Extracted data including tagIds, moviesInProduction, maxTagSlots, studioName, and error
+ * @returns {Object} - Extracted data including tagIds, moviesInProduction, maxTagSlots, studioName, ownedTheatres, and error
  */
 export function parseSaveFile(jsonString) {
   try {
@@ -39,12 +39,16 @@ export function parseSaveFile(jsonString) {
     const moviesInProduction = extractMoviesInProduction(stateJson);
     const maxTagSlots = extractMaxTagSlots(stateJson.openedPerks);
     const studioName = stateJson.studioName || null;
+    const ownedTheatres = extractOwnedTheatres(stateJson);
+    const codexBannedTags = extractCodexBannedTags(stateJson);
     
     return { 
       tagIds, 
       moviesInProduction,
       maxTagSlots,
       studioName,
+      ownedTheatres,
+      codexBannedTags,
       error: null 
     };
   } catch (e) {
@@ -95,4 +99,59 @@ function extractMaxTagSlots(openedPerks) {
   }).filter(n => !isNaN(n));
   
   return slots.length > 0 ? Math.max(...slots) : 5;
+}
+
+/**
+ * Extract player's weekly screenings from save data.
+ * 
+ * The ownedCinemas object contains cinema counts for all studios:
+ * - GB, EM, SU, HE, MA = competitor studios
+ * - PL = player's studios
+ * 
+ * We only want the player's cinemas (PL), then multiply by 35 
+ * (5 shows/day × 7 days/week) to get weekly screenings.
+ * 
+ * Fallback: ourCinemasDuringThisMonth also stores player's cinema count.
+ * 
+ * @param {Object} stateJson - The stateJson object from save file
+ * @returns {number} - Total weekly screenings from player-owned theatres
+ */
+function extractOwnedTheatres(stateJson) {
+  const SHOWS_PER_WEEK_PER_CINEMA = 35; // 5 shows/day × 7 days
+  
+  // Try to get player's cinemas from ownedCinemas.PL first
+  const ownedCinemas = stateJson.ownedCinemas;
+  if (ownedCinemas && typeof ownedCinemas === 'object' && ownedCinemas.PL !== undefined) {
+    const playerCinemas = typeof ownedCinemas.PL === 'number' 
+      ? ownedCinemas.PL 
+      : parseInt(ownedCinemas.PL, 10);
+    if (!isNaN(playerCinemas)) {
+      return playerCinemas * SHOWS_PER_WEEK_PER_CINEMA;
+    }
+  }
+  
+  // Fallback to ourCinemasDuringThisMonth
+  const ourCinemas = stateJson.ourCinemasDuringThisMonth;
+  if (typeof ourCinemas === 'number') {
+    return ourCinemas * SHOWS_PER_WEEK_PER_CINEMA;
+  }
+  
+  return 0;
+}
+
+/**
+ * Extract tags banned by the codex (The Code).
+ * currentTagsInCodex contains tags that are currently restricted.
+ * 
+ * @param {Object} stateJson - The stateJson object from save file
+ * @returns {Set<string>} - Set of banned tag IDs
+ */
+function extractCodexBannedTags(stateJson) {
+  const codexTags = stateJson.currentTagsInCodex;
+  if (!codexTags || typeof codexTags !== 'object') {
+    return new Set();
+  }
+  
+  // The keys of currentTagsInCodex are the banned tag IDs
+  return new Set(Object.keys(codexTags));
 }
