@@ -78,6 +78,10 @@ function SaveImportModal({ isOpen, onClose }) {
         </div>
 
         <div className="modal-body">
+          <p className="modal-warning">
+            <strong>Note:</strong> Loading or clearing a save will reset all form selections.
+          </p>
+
           <p className="modal-description">
             Import your Hollywood Animal save file to filter tags to only those you've researched.
             Your save data stays in your browser - nothing is uploaded to any server.

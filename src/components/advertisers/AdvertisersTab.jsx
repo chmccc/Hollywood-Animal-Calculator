@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAudienceAnalysis } from '../../hooks/useAudienceAnalysis';
 import Card from '../common/Card';
@@ -12,7 +12,7 @@ import AdvertiserResults from './AdvertiserResults';
 import { collectTagInputs } from '../../utils/tagHelpers';
 
 function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
-  const { categories, isLoading } = useApp();
+  const { categories, isLoading, ownedTagIds } = useApp();
   const { analyzeMovie, calculateDistribution } = useAudienceAnalysis();
   
   const [selectedTags, setSelectedTags] = useState([]);
@@ -95,12 +95,22 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
     setResults(result);
   };
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     const initialTagsList = categories.map(cat => ({ id: '', category: cat }));
     setSelectedTags(initialTagsList);
     setGenrePercents({});
     setResults(null);
-  };
+  }, [categories]);
+
+  // Reset form when save is loaded or unloaded
+  const prevSaveLoadedRef = useRef(ownedTagIds !== null);
+  useEffect(() => {
+    const saveLoaded = ownedTagIds !== null;
+    if (prevSaveLoadedRef.current !== saveLoaded) {
+      prevSaveLoadedRef.current = saveLoaded;
+      handleReset();
+    }
+  }, [ownedTagIds, handleReset]);
 
   const distributionResults = calculateDistribution(comScore, ownedScreenings);
 

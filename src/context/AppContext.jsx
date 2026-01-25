@@ -7,6 +7,9 @@ const AppContext = createContext(null);
 // localStorage keys for save data persistence
 const STORAGE_KEY_OWNED_TAGS = 'ownedTagIds';
 const STORAGE_KEY_SAVE_SOURCE = 'saveSourceName';
+const STORAGE_KEY_MOVIES_IN_PROD = 'moviesInProduction';
+const STORAGE_KEY_MAX_TAG_SLOTS = 'maxTagSlots';
+const STORAGE_KEY_STUDIO_NAME = 'studioName';
 
 // Helper function to beautify tag names
 function beautifyTagName(rawId, localizationMap = {}) {
@@ -64,6 +67,30 @@ export function AppProvider({ children }) {
   
   const [saveSourceName, setSaveSourceName] = useState(() => {
     return localStorage.getItem(STORAGE_KEY_SAVE_SOURCE) || null;
+  });
+
+  // Additional save data state
+  const [moviesInProduction, setMoviesInProduction] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_MOVIES_IN_PROD);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error('Failed to load movies in production from localStorage:', e);
+      return [];
+    }
+  });
+
+  const [maxTagSlots, setMaxTagSlots] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_MAX_TAG_SLOTS);
+      return saved ? parseInt(saved, 10) : 10; // Default 10 if no save
+    } catch (e) {
+      return 10;
+    }
+  });
+
+  const [studioName, setStudioName] = useState(() => {
+    return localStorage.getItem(STORAGE_KEY_STUDIO_NAME) || null;
   });
 
   // Load localization - do this FIRST
@@ -193,7 +220,13 @@ export function AppProvider({ children }) {
 
   // Load save data from JSON string
   const loadSaveData = useCallback((jsonString, sourceName = 'save.json') => {
-    const { tagIds, error } = parseSaveFile(jsonString);
+    const { 
+      tagIds, 
+      moviesInProduction: movies, 
+      maxTagSlots: slots, 
+      studioName: studio, 
+      error 
+    } = parseSaveFile(jsonString);
     
     if (error) {
       return { success: false, error };
@@ -202,26 +235,42 @@ export function AppProvider({ children }) {
     const tagSet = new Set(tagIds);
     setOwnedTagIds(tagSet);
     setSaveSourceName(sourceName);
+    setMoviesInProduction(movies || []);
+    setMaxTagSlots(slots || 10);
+    setStudioName(studio || null);
     
     // Persist to localStorage
     try {
       localStorage.setItem(STORAGE_KEY_OWNED_TAGS, JSON.stringify(tagIds));
       localStorage.setItem(STORAGE_KEY_SAVE_SOURCE, sourceName);
+      localStorage.setItem(STORAGE_KEY_MOVIES_IN_PROD, JSON.stringify(movies || []));
+      localStorage.setItem(STORAGE_KEY_MAX_TAG_SLOTS, String(slots || 10));
+      if (studio) {
+        localStorage.setItem(STORAGE_KEY_STUDIO_NAME, studio);
+      } else {
+        localStorage.removeItem(STORAGE_KEY_STUDIO_NAME);
+      }
     } catch (e) {
       console.error('Failed to save to localStorage:', e);
     }
     
-    return { success: true, count: tagIds.length };
+    return { success: true, count: tagIds.length, moviesInProduction: movies?.length || 0 };
   }, []);
 
   // Clear save data
   const clearSaveData = useCallback(() => {
     setOwnedTagIds(null);
     setSaveSourceName(null);
+    setMoviesInProduction([]);
+    setMaxTagSlots(10); // Reset to default
+    setStudioName(null);
     
     try {
       localStorage.removeItem(STORAGE_KEY_OWNED_TAGS);
       localStorage.removeItem(STORAGE_KEY_SAVE_SOURCE);
+      localStorage.removeItem(STORAGE_KEY_MOVIES_IN_PROD);
+      localStorage.removeItem(STORAGE_KEY_MAX_TAG_SLOTS);
+      localStorage.removeItem(STORAGE_KEY_STUDIO_NAME);
     } catch (e) {
       console.error('Failed to clear localStorage:', e);
     }
@@ -250,7 +299,11 @@ export function AppProvider({ children }) {
     ownedTagIds,
     saveSourceName,
     loadSaveData,
-    clearSaveData
+    clearSaveData,
+    // Additional save data
+    moviesInProduction,
+    maxTagSlots,
+    studioName
   };
 
   return (

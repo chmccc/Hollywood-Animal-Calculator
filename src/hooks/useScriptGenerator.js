@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { calculateMatrixScore, calculateTotalBonuses, getScoringElementCount } from '../utils/calculations';
 
 export function useScriptGenerator() {
-  const { tags, compatibility, genrePairs, starterWhitelist, ownedTagIds } = useApp();
+  const { tags, compatibility, genrePairs, starterWhitelist, ownedTagIds, moviesInProduction, maxTagSlots } = useApp();
   const [generatedScripts, setGeneratedScripts] = useState([]);
   const [pinnedScripts, setPinnedScripts] = useState(() => {
     // Load from localStorage on init
@@ -20,6 +20,129 @@ export function useScriptGenerator() {
     setPinnedScripts(scripts);
     localStorage.setItem('pinnedScripts', JSON.stringify(scripts));
   }, []);
+
+  // Convert a movie from save data to a pinned script format
+  const convertMovieToScript = useCallback((movie) => {
+    // Build tags array from movie data
+    const scriptTags = [];
+    
+    // Add genres with their fractions
+    if (movie.genreIdsAndFractions && movie.genreIdsAndFractions.length > 0) {
+      movie.genreIdsAndFractions.forEach(g => {
+        scriptTags.push({
+          id: g.Item1,
+          percent: parseFloat(g.Item2) || 1.0,
+          category: 'Genre'
+        });
+      });
+    }
+    
+    // Add settings
+    if (movie.settingIds && movie.settingIds.length > 0) {
+      movie.settingIds.forEach(id => {
+        scriptTags.push({
+          id: id,
+          percent: 1.0,
+          category: 'Setting'
+        });
+      });
+    }
+    
+    // Add content tags (protagonists, antagonists, themes, etc.)
+    if (movie.contentIds && movie.contentIds.length > 0) {
+      movie.contentIds.forEach(id => {
+        // Determine category from tag ID
+        let category = 'Theme & Event';
+        if (id.startsWith('PROTAGONIST_')) category = 'Protagonist';
+        else if (id.startsWith('ANTAGONIST_')) category = 'Antagonist';
+        else if (id.startsWith('SUPPORTINGCHARACTER_')) category = 'Supporting Character';
+        else if (id.startsWith('FINALE_')) category = 'Finale';
+        else if (id.startsWith('THEME_') || id.startsWith('EVENTS_') || id.startsWith('EVENT_')) category = 'Theme & Event';
+        
+        scriptTags.push({
+          id: id,
+          percent: 1.0,
+          category: category
+        });
+      });
+    }
+    
+    // Get production phase name
+    const phaseNames = {
+      0: 'Script',
+      1: 'Pre-prod',
+      2: 'Pre-prod',
+      3: 'Production',
+      4: 'Post-prod'
+    };
+    const phaseName = phaseNames[movie.currentStage] || `Stage ${movie.currentStage}`;
+    
+    return {
+      tags: scriptTags,
+      stats: {
+        avgComp: 0,
+        synergySum: 0,
+        maxScriptQuality: 0,
+        movieScore: '0.0'
+      },
+      uniqueId: `save-movie-${movie.id}`,
+      name: movie.name || `Movie ${movie.id}`,
+      fromSave: true,
+      movieId: movie.id,
+      currentStage: movie.currentStage,
+      phaseName: phaseName
+    };
+  }, []);
+
+  // Auto-pin movies from save when moviesInProduction changes, or clear when save is unloaded
+  useEffect(() => {
+    const hasSavePins = pinnedScripts.some(s => s.fromSave);
+    
+    // If save is unloaded (no movies in production), clear any existing save pins
+    if (!moviesInProduction || moviesInProduction.length === 0) {
+      if (hasSavePins) {
+        const userPins = pinnedScripts.filter(s => !s.fromSave);
+        savePinnedScripts(userPins);
+      }
+      return;
+    }
+    
+    // Get current pinned script IDs
+    const currentSaveMovieIds = new Set(
+      pinnedScripts
+        .filter(s => s.fromSave)
+        .map(s => s.movieId)
+    );
+    
+    // Check if we need to add any new movies
+    const newMovies = moviesInProduction.filter(m => !currentSaveMovieIds.has(m.id));
+    
+    if (newMovies.length > 0) {
+      // Convert new movies to scripts
+      const newScripts = newMovies.map(m => convertMovieToScript(m));
+      
+      // Merge with existing pinned scripts (user pins stay, save pins get updated)
+      const userPins = pinnedScripts.filter(s => !s.fromSave);
+      const existingSaveIds = new Set(moviesInProduction.map(m => m.id));
+      const validExistingSavePins = pinnedScripts
+        .filter(s => s.fromSave && existingSaveIds.has(s.movieId));
+      
+      // Combine: user pins first, then save pins sorted by stage
+      const allSavePins = [...validExistingSavePins, ...newScripts]
+        .sort((a, b) => a.currentStage - b.currentStage);
+      
+      savePinnedScripts([...userPins, ...allSavePins]);
+    }
+  }, [moviesInProduction, convertMovieToScript]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sorted pinned scripts: user-created first, then save movies ordered by production phase
+  const sortedPinnedScripts = useMemo(() => {
+    const userPins = pinnedScripts.filter(s => !s.fromSave);
+    const savePins = pinnedScripts
+      .filter(s => s.fromSave)
+      .sort((a, b) => (a.currentStage || 0) - (b.currentStage || 0));
+    return [...userPins, ...savePins];
+  }, [pinnedScripts]);
 
   const getCompatibleGenres = useCallback((sourceId, excludedIds) => {
     let valid = [];
@@ -182,6 +305,9 @@ export function useScriptGenerator() {
     else if (targetScoreInput === 7) targetCount = 7;
     else if (targetScoreInput === 8) targetCount = 8;
     else if (targetScoreInput >= 9) targetCount = 9;
+    
+    // Cap at research limit (maxTagSlots from save)
+    targetCount = Math.min(targetCount, maxTagSlots);
 
     // Validate
     const scoringFixed = fixedTags.filter(t => t.category !== "Genre" && t.category !== "Setting");
@@ -221,7 +347,7 @@ export function useScriptGenerator() {
 
     setGeneratedScripts(generatedBatch);
     return { scripts: generatedBatch };
-  }, [runGenerationAlgorithm]);
+  }, [runGenerationAlgorithm, maxTagSlots]);
 
   const togglePin = useCallback((uniqueId) => {
     const existingIndex = pinnedScripts.findIndex(s => String(s.uniqueId) === String(uniqueId));
@@ -330,9 +456,34 @@ export function useScriptGenerator() {
       .map(tag => ({ id: tag.id, percent: 1.0, category: tag.category }));
   }, [tags, starterWhitelist]);
 
+  // Clear save-based pinned scripts (called when save is cleared)
+  const clearSavePins = useCallback(() => {
+    const userPins = pinnedScripts.filter(s => !s.fromSave);
+    savePinnedScripts(userPins);
+  }, [pinnedScripts, savePinnedScripts]);
+
+  // Refresh save pins from current moviesInProduction
+  const refreshSavePins = useCallback(() => {
+    if (!moviesInProduction || moviesInProduction.length === 0) {
+      // Clear all save pins if no movies in production
+      const userPins = pinnedScripts.filter(s => !s.fromSave);
+      savePinnedScripts(userPins);
+      return;
+    }
+    
+    // Convert all movies to scripts
+    const saveScripts = moviesInProduction
+      .map(m => convertMovieToScript(m))
+      .sort((a, b) => a.currentStage - b.currentStage);
+    
+    // Keep user pins at top
+    const userPins = pinnedScripts.filter(s => !s.fromSave);
+    savePinnedScripts([...userPins, ...saveScripts]);
+  }, [moviesInProduction, pinnedScripts, convertMovieToScript, savePinnedScripts]);
+
   return {
     generatedScripts,
-    pinnedScripts,
+    pinnedScripts: sortedPinnedScripts,
     generateScripts,
     togglePin,
     pinScript,
@@ -340,6 +491,8 @@ export function useScriptGenerator() {
     updateScriptName,
     exportPinnedScripts,
     importPinnedScripts,
-    getExcludedTagsForStarterProfile
+    getExcludedTagsForStarterProfile,
+    clearSavePins,
+    refreshSavePins
   };
 }

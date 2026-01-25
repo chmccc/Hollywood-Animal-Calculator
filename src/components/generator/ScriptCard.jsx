@@ -35,31 +35,45 @@ function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, o
     <div className="gen-card" data-id={script.uniqueId}>
       <div className="gen-header" onClick={handleHeaderClick}>
         <div className="gen-left-col">
-          {onNameChange && (
-            <input
-              type="text"
-              className="script-name-input"
-              value={script.name || 'Untitled Script'}
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => onNameChange(e.target.value)}
-              placeholder="Script Name"
-            />
-          )}
+          <div className="script-name-row">
+            {onNameChange ? (
+              <input
+                type="text"
+                className="script-name-input"
+                value={script.name || 'Untitled Script'}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => onNameChange(e.target.value)}
+                placeholder="Script Name"
+              />
+            ) : (
+              <span className="script-name-display">{script.name || 'Untitled Script'}</span>
+            )}
+            {script.fromSave && script.phaseName && (
+              <span className="production-phase-badge">{script.phaseName}</span>
+            )}
+          </div>
           <div className="gen-info-row">
-            <div className="gen-badge-group">
-              <span className="gen-badge-label">Avg Comp</span>
-              <span className={`gen-badge-val ${compClass}`}>
-                {script.stats.avgComp.toFixed(1)}
-              </span>
-            </div>
-            <div className="gen-badge-group">
-              <span className="gen-badge-label">Movie Score</span>
-              <span className="gen-badge-val val-mid">{script.stats.movieScore}</span>
-            </div>
-            <div className="gen-badge-group">
-              <span className="gen-badge-label">Script Qual</span>
-              <span className="gen-badge-val val-mid">{script.stats.maxScriptQuality}</span>
-            </div>
+            {!script.fromSave && (
+              <>
+                <div className="gen-badge-group">
+                  <span className="gen-badge-label">Avg Comp</span>
+                  <span className={`gen-badge-val ${compClass}`}>
+                    {script.stats.avgComp.toFixed(1)}
+                  </span>
+                </div>
+                <div className="gen-badge-group">
+                  <span className="gen-badge-label">Movie Score</span>
+                  <span className="gen-badge-val val-mid">{script.stats.movieScore}</span>
+                </div>
+                <div className="gen-badge-group">
+                  <span className="gen-badge-label">Script Qual</span>
+                  <span className="gen-badge-val val-mid">{script.stats.maxScriptQuality}</span>
+                </div>
+              </>
+            )}
+            {script.fromSave && (
+              <span className="from-save-indicator">From Save</span>
+            )}
           </div>
         </div>
         <button

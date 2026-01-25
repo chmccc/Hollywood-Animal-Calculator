@@ -9,7 +9,7 @@ import ScriptCard from './ScriptCard';
 import { collectTagInputs } from '../../utils/tagHelpers';
 
 function GeneratorTab({ onTransferToAdvertisers = null }) {
-  const { categories, ownedTagIds } = useApp();
+  const { categories, ownedTagIds, maxTagSlots } = useApp();
   const {
     generatedScripts,
     pinnedScripts,
@@ -84,6 +84,18 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     localStorage.removeItem('excludedTags');
     setExcludedTags([]);
   };
+
+  // Reset locked tags when save is loaded or unloaded
+  const prevSaveLoadedRef = useRef(ownedTagIds !== null);
+  useEffect(() => {
+    const saveLoaded = ownedTagIds !== null;
+    if (prevSaveLoadedRef.current !== saveLoaded) {
+      prevSaveLoadedRef.current = saveLoaded;
+      // Reset locks - they may reference invalid tags from old save
+      setLockedTags([]);
+      setGenrePercents({});
+    }
+  }, [ownedTagIds]);
 
   const handleSaveExclusions = () => {
     localStorage.setItem('excludedTags', JSON.stringify(excludedTags));
@@ -162,7 +174,14 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     else if (targetScore === 8) requiredTags = 8;
     else if (targetScore === 9) requiredTags = 9;
     else if (targetScore === 10) requiredTags = 10;
-    return `Requires ~${requiredTags} Story Elements (excluding Genre & Setting).`;
+    
+    // Cap at research limit
+    const effectiveTags = Math.min(requiredTags, maxTagSlots);
+    const isLimited = requiredTags > maxTagSlots;
+    
+    return isLimited 
+      ? `Requires ~${requiredTags} elements, limited to ${maxTagSlots} by research.`
+      : `Requires ~${effectiveTags} Story Elements (max ${maxTagSlots} from research).`;
   };
 
   return (

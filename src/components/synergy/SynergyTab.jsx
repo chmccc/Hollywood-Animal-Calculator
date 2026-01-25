@@ -59,7 +59,7 @@ function GenreSlider({ tagId, tagName, value, onChange }) {
 }
 
 function SynergyTab({ onTransferToAdvertisers = null }) {
-  const { categories, isLoading, tags, compatibility } = useApp();
+  const { categories, isLoading, tags, compatibility, maxTagSlots, ownedTagIds } = useApp();
   const { calculateSynergy } = useSynergyCalculation();
   const { analyzeMovie } = useAudienceAnalysis();
   const {
@@ -131,6 +131,25 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
       }));
   }, [selectedTags, tags]);
 
+  // Auto-initialize to 50/50 when exactly 2 genres are selected
+  const prevGenreCountRef = useRef(0);
+  useEffect(() => {
+    const prevCount = prevGenreCountRef.current;
+    const currentCount = selectedGenres.length;
+    prevGenreCountRef.current = currentCount;
+    
+    // When transitioning to exactly 2 genres, initialize both to 50%
+    if (currentCount === 2 && prevCount !== 2) {
+      setGenrePercents(prev => {
+        const newPercents = { ...prev };
+        selectedGenres.forEach(genre => {
+          newPercents[genre.id] = 50;
+        });
+        return newPercents;
+      });
+    }
+  }, [selectedGenres]);
+
   // Calculate genre percentage sum for validation
   const genrePercentSum = useMemo(() => {
     if (selectedGenres.length <= 1) return 100;
@@ -193,12 +212,26 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
   }, []);
 
   const handleGenrePercentChange = useCallback((tagId, value) => {
-    setGenrePercents(prev => ({ ...prev, [tagId]: value }));
-  }, []);
+    setGenrePercents(prev => {
+      const newPercents = { ...prev, [tagId]: value };
+      
+      // Auto-balance when exactly 2 genres are selected
+      if (selectedGenres.length === 2) {
+        const otherGenre = selectedGenres.find(g => g.id !== tagId);
+        if (otherGenre) {
+          newPercents[otherGenre.id] = 100 - value;
+        }
+      }
+      
+      return newPercents;
+    });
+  }, [selectedGenres]);
 
-  // Categories that count toward the 9-element limit (excludes Genre, Setting, and Protagonist)
+  // Categories that count toward the element limit (excludes Genre, Setting, and Protagonist)
   const ELEMENT_CATEGORIES = ['Antagonist', 'Supporting Character', 'Theme & Event', 'Finale'];
-  const MAX_ELEMENTS = 9;
+  // Max optional elements = maxTagSlots - 1 (Protagonist takes 1 slot)
+  // maxTagSlots defaults to 10 when no save loaded, so MAX_ELEMENTS defaults to 9
+  const MAX_ELEMENTS = maxTagSlots - 1;
 
   // Toggle handler for TagBrowser
   const handleTagToggle = useCallback((tagId, category) => {
@@ -223,7 +256,9 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
           const isReplacing = isSingleSelect && hasExistingInCategory;
           
           // Block if we're at max AND not replacing an existing single-select selection
-          if (currentElementCount >= MAX_ELEMENTS && !isReplacing) {
+          // Use maxTagSlots directly to avoid stale closure
+          const maxElements = maxTagSlots - 1;
+          if (currentElementCount >= maxElements && !isReplacing) {
             return prev; // Don't add, at max
           }
         }
@@ -236,7 +271,7 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
         return [...prev, { id: tagId, category }];
       }
     });
-  }, []);
+  }, [maxTagSlots]);
 
   const handleCalculate = () => {
     const tagInputs = collectTagInputs(
@@ -253,7 +288,7 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
     setResults(result);
   };
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     if (inputMode === 'dropdown') {
       const initialTags = categories.map(cat => ({ id: '', category: cat }));
       setSelectedTags(initialTags);
@@ -262,7 +297,17 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
     }
     setGenrePercents({});
     setResults(null);
-  };
+  }, [inputMode, categories]);
+
+  // Reset form when save is loaded or unloaded
+  const prevSaveLoadedRef = useRef(ownedTagIds !== null);
+  useEffect(() => {
+    const saveLoaded = ownedTagIds !== null;
+    if (prevSaveLoadedRef.current !== saveLoaded) {
+      prevSaveLoadedRef.current = saveLoaded;
+      handleReset();
+    }
+  }, [ownedTagIds, handleReset]);
 
   // Auto-calculate in browser mode when validation passes
   useEffect(() => {
@@ -388,7 +433,10 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                 <button className="reset-btn" onClick={handleReset}>Reset</button>
               </div>
             </div>
-            <p className="subtitle">Select story elements to see how well they fit together.</p>
+            <p className="subtitle">
+              Select story elements to see how well they fit together.
+              {ownedTagIds && <span> Max optional elements: {maxTagSlots - 1}.</span>}
+            </p>
             
             {inputMode === 'dropdown' ? (
               <div id="selectors-container-synergy">
@@ -472,13 +520,39 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
 
         {/* Right Column - Results */}
         <div className="split-layout-right">
-          {results && (
+          {results ? (
             <SynergyResults 
               results={results} 
               audienceData={audienceData}
               onTransfer={onTransferToAdvertisers ? handleTransfer : null}
               onPin={handlePinScript}
             />
+          ) : (
+            <div className="validation-placeholder">
+              <div className="validation-placeholder-content">
+                <span className="validation-status-text">
+                  Results appear when story is valid:
+                </span>
+                <div className="validation-checklist">
+                  {['Genre', 'Setting', 'Protagonist'].map(category => {
+                    const hasCategory = selectedTags.some(t => t.category === category && t.id);
+                    return (
+                      <span 
+                        key={category} 
+                        className={`validation-chip ${hasCategory ? 'valid' : 'missing'}`}
+                      >
+                        {hasCategory ? '✓' : '○'} {category}
+                      </span>
+                    );
+                  })}
+                  {selectedGenres.length > 1 && (
+                    <span className={`validation-chip ${validation.hasValidPercents ? 'valid' : 'missing'}`}>
+                      {validation.hasValidPercents ? '✓' : '○'} Genres: {genrePercentSum}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Pinned Scripts - shared with Generator tab */}

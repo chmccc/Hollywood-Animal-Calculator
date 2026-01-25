@@ -620,6 +620,37 @@ input[type="text"] {
     border-bottom-color: var(--accent);
 }
 
+.script-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.script-name-display {
+    color: var(--text-main);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.production-phase-badge {
+    background: rgba(76, 217, 100, 0.2);
+    color: var(--success);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.from-save-indicator {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
 .gen-info-row {
     display: flex;
     align-items: center;
@@ -1633,7 +1664,7 @@ input[type="text"] {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    max-width: 500px;
+    max-width: 680px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
@@ -1717,6 +1748,20 @@ input[type="text"] {
     border-radius: 4px;
     margin-bottom: 20px;
     font-size: 0.9rem;
+}
+
+.modal-warning {
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid var(--accent);
+    color: var(--text-muted);
+    padding: 10px 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+}
+
+.modal-warning strong {
+    color: var(--accent);
 }
 
 .import-option {
@@ -1845,6 +1890,16 @@ input[type="text"] {
     font-weight: 600;
 }
 
+.studio-name {
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-right: 8px;
+    border-right: 1px solid var(--accent);
+}
+
 .save-clear-btn {
     background: transparent;
     border: none;
@@ -1970,4 +2025,58 @@ input[type="text"] {
         scrollbar-width: thin;
         scrollbar-color: var(--border) var(--bg-color);
     }
+}
+
+/* ========================================= */
+/* --- VALIDATION PLACEHOLDER STYLES --- */
+/* ========================================= */
+
+.validation-placeholder {
+    background: var(--card-bg);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 15px 20px;
+}
+
+.validation-placeholder-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.validation-status-text {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-right: 5px;
+}
+
+.validation-checklist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.validation-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-muted);
+}
+
+.validation-chip.valid {
+    border-color: var(--success);
+    background: rgba(76, 217, 100, 0.1);
+    color: var(--success);
+}
+
+.validation-chip.missing {
+    border-color: var(--border);
+    color: var(--text-muted);
 }

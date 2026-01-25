@@ -4,7 +4,7 @@ import { LANGUAGES } from '../../data/gameData';
 import SaveImportModal from './SaveImportModal';
 
 function Header() {
-  const { currentLanguage, changeLanguage, ownedTagIds, saveSourceName, clearSaveData } = useApp();
+  const { currentLanguage, changeLanguage, ownedTagIds, saveSourceName, clearSaveData, studioName } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const tagCount = ownedTagIds ? ownedTagIds.size : 0;
@@ -22,6 +22,9 @@ function Header() {
           <div className="save-status-wrapper">
             {ownedTagIds ? (
               <div className="save-loaded">
+                {studioName && (
+                  <span className="studio-name">{studioName}</span>
+                )}
                 <span className="save-info">{tagCount} tags loaded</span>
                 <button 
                   className="save-clear-btn"
