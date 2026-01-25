@@ -1,5 +1,6 @@
 import { formatScore, formatSimpleScore, formatFinalRating } from '../../utils/calculations';
 import TargetAudience from '../advertisers/TargetAudience';
+import Button from '../common/Button';
 
 function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = false }) {
   const {
@@ -141,23 +142,21 @@ function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = f
       {(onTransfer || onPin) && (
         <div className="action-area" style={{ marginTop: 0, display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
           {onPin && (
-            <button 
-              className={`analyze-btn ${isPinned ? 'pinned-btn' : ''}`}
+            <Button 
+              variant={isPinned ? 'ghost' : 'primary'}
+              size="md"
               onClick={onPin}
               disabled={isPinned}
-              title={isPinned ? 'Already pinned' : 'Pin this script'}
-              style={isPinned ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
-            >
-              {isPinned ? '★ Pinned' : '☆ Pin Script'}
-            </button>
+              title={isPinned ? '★ Pinned' : '☆ Pin Script'}
+            />
           )}
           {onTransfer && (
-            <button 
-              className="analyze-btn secondary-btn"
+            <Button 
+              size="md"
+              variant="primary"
               onClick={onTransfer}
-            >
-              Find Best Advertisers →
-            </button>
+              title="Find Best Advertisers →"
+            />
           )}
         </div>
       )}

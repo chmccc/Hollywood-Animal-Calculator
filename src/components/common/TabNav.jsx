@@ -1,3 +1,5 @@
+import Button from './Button';
+
 function TabNav({ currentTab, onTabChange }) {
   const tabs = [
     { id: 'generator', label: 'Script Generator' },
@@ -8,13 +10,13 @@ function TabNav({ currentTab, onTabChange }) {
   return (
     <nav className="tab-nav">
       {tabs.map(tab => (
-        <button
+        <Button
           key={tab.id}
-          className={`tab-btn ${currentTab === tab.id ? 'active' : ''}`}
+          size="md"
+          active={currentTab === tab.id}
           onClick={() => onTabChange(tab.id)}
-        >
-          {tab.label}
-        </button>
+          title={tab.label}
+        />
       ))}
     </nav>
   );

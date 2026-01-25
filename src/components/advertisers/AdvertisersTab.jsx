@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAudienceAnalysis } from '../../hooks/useAudienceAnalysis';
 import Card from '../common/Card';
+import Button from '../common/Button';
 import Slider from '../common/Slider';
 import SearchBar from '../common/SearchBar';
 import CategorySelector from '../common/CategorySelector';
@@ -163,7 +164,7 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
           <Card className="builder-card">
             <div className="card-header">
               <h3>Build Your Script</h3>
-              <button className="reset-btn" onClick={handleReset}>Reset</button>
+              <Button size="sm" variant="primary" onClick={handleReset} title="Reset" />
             </div>
             <p className="subtitle">Select tags manually or use the search bar above. Add multiple genres to adjust their influence.</p>
             
@@ -182,9 +183,7 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
             </div>
             
             <div className="action-area">
-              <button className="analyze-btn" onClick={handleAnalyze}>
-                Analyse
-              </button>
+              <Button variant="primary" size="lg" fullWidth onClick={handleAnalyze} title="Analyse" />
             </div>
           </Card>
 

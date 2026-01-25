@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { MULTI_SELECT_CATEGORIES } from '../../data/gameData';
+import Button from './Button';
 
 function CategorySelector({
   category,
@@ -89,12 +90,12 @@ function CategorySelector({
       <div className="category-header">
         <div className="category-label">{category}</div>
         {isMultiSelect && (
-          <button
-            className="add-btn"
+          <Button
+            size="icon"
             onClick={() => addDropdown()}
           >
             +
-          </button>
+          </Button>
         )}
       </div>
       
@@ -137,12 +138,13 @@ function CategorySelector({
             )}
             
             {isMultiSelect && displayTags.length > 1 && (
-              <button
-                className="remove-btn"
+              <Button
+                size="icon"
+                variant="ghost"
                 onClick={() => removeTag(index)}
               >
                 ×
-              </button>
+              </Button>
             )}
           </div>
         ))}

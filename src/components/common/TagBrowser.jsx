@@ -148,10 +148,13 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                 // Note: isCategoryDisabled already accounts for single-select swap possibility
                 const isTagDisabled = isCategoryDisabled && !isSelected;
 
+                // Category class for styling
+                const categoryClass = `cat-${category.toLowerCase().replace(/\s+&?\s*/g, '-')}`;
+
                 return (
                   <button
                     key={tag.id}
-                    className={`tag-browser-card ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${isTagDisabled ? 'tag-disabled' : ''}`.trim()}
+                    className={`tag-browser-card ${categoryClass} ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${isTagDisabled ? 'tag-disabled' : ''}`.trim()}
                     onClick={() => !isTagDisabled && handleCardClick(tag.id, category)}
                     type="button"
                     disabled={isTagDisabled}

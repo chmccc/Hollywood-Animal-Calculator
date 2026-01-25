@@ -5,6 +5,7 @@ import { useScriptGenerator } from '../../hooks/useScriptGenerator';
 import { useAudienceAnalysis } from '../../hooks/useAudienceAnalysis';
 import { MULTI_SELECT_CATEGORIES } from '../../data/gameData';
 import Card from '../common/Card';
+import Button from '../common/Button';
 import SearchBar from '../common/SearchBar';
 import CategorySelector from '../common/CategorySelector';
 import TagBrowser from '../common/TagBrowser';
@@ -424,13 +425,12 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
             <div className="card-header">
               <h3>Check Compatibility</h3>
               <div className="header-controls">
-                <button
-                  className="mode-toggle-btn"
+                <Button
+                  size="sm"
                   onClick={() => setInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
-                >
-                  {inputMode === 'dropdown' ? 'Use Browse Mode' : 'Use Dropdown Mode'}
-                </button>
-                <button className="reset-btn" onClick={handleReset}>Reset</button>
+                  title={inputMode === 'dropdown' ? 'Browse Mode' : 'Dropdown Mode'}
+                />
+                <Button size="sm" variant="primary" onClick={handleReset} title="Reset" />
               </div>
             </div>
             <p className="subtitle">
@@ -485,14 +485,14 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
             
             {inputMode === 'dropdown' ? (
               <div className="action-area">
-                <button 
-                  className="analyze-btn" 
+                <Button 
+                  variant="primary"
+                  size="lg"
+                  fullWidth
                   onClick={handleCalculate}
                   disabled={!validation.isValid}
-                  title={!validation.isValid ? `Missing: ${validation.missing.join(', ')}` : ''}
-                >
-                  Check Compatibility
-                </button>
+                  title="Check Compatibility"
+                />
                 {!validation.isValid && (
                   <p className="subtitle" style={{ marginTop: '10px', color: 'var(--text-muted)' }}>
                     Required: {validation.missing.join(', ')}
@@ -562,12 +562,8 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                 <h3 style={{ color: 'var(--accent)', margin: 0 }}>Pinned Scripts</h3>
               </div>
               <div className="file-controls">
-                <button className="file-action-btn" onClick={handleExport} title="Download Pinned Scripts">
-                  <span>⬇ Save</span>
-                </button>
-                <button className="file-action-btn" onClick={handleImportClick} title="Upload JSON File">
-                  <span>⬆ Load</span>
-                </button>
+                <Button size="sm" variant="primary" onClick={handleExport} title="⬇ Save" />
+                <Button size="sm" variant="primary" onClick={handleImportClick} title="⬆ Load" />
                 <input
                   ref={fileInputRef}
                   type="file"

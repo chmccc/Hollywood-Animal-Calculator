@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useScriptGenerator } from '../../hooks/useScriptGenerator';
 import Card from '../common/Card';
+import Button from '../common/Button';
 import Slider from '../common/Slider';
 import CategorySelector from '../common/CategorySelector';
 import TagBrowser from '../common/TagBrowser';
@@ -229,7 +230,7 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
             {/* Locked Elements */}
             <div className="card-header">
               <h3>Locked Elements</h3>
-              <button className="reset-btn" onClick={handleResetLocks}>Reset Locks</button>
+              <Button size="sm" variant="primary" onClick={handleResetLocks} title="Reset Locks" />
             </div>
             <p className="subtitle">Select specific tags you <strong>MUST</strong> have in the script.</p>
             
@@ -253,14 +254,13 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
             <div className="card-header">
               <h3 style={{ color: 'var(--danger)' }}>Excluded Elements</h3>
               <div className="header-controls">
-                <button
-                  className="mode-toggle-btn"
+                <Button
+                  size="sm"
                   onClick={() => setExcludedInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
-                >
-                  {excludedInputMode === 'dropdown' ? 'Use Browse Mode' : 'Use Dropdown Mode'}
-                </button>
-                <button className="save-btn" onClick={handleSaveExclusions}>Save Exclusions</button>
-                <button className="reset-btn" onClick={handleResetExcluded}>Reset Bans</button>
+                  title={excludedInputMode === 'dropdown' ? 'Browse Mode' : 'Dropdown Mode'}
+                />
+                <Button size="sm" onClick={handleSaveExclusions} title="Save" />
+                <Button size="sm" variant="primary" onClick={handleResetExcluded} title="Reset" />
               </div>
             </div>
             <p className="subtitle">Select tags to <strong>BAN</strong> (e.g., due to "The Code"). The generator will never pick these.</p>
@@ -287,9 +287,7 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
             )}
 
             <div className="action-area">
-              <button className="analyze-btn" onClick={handleGenerate}>
-                Generate Scripts
-              </button>
+              <Button variant="primary" size="lg" fullWidth onClick={handleGenerate} title="Generate Scripts" />
             </div>
           </Card>
         </div>
@@ -303,12 +301,8 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                 <h3 style={{ color: 'var(--accent)', margin: 0 }}>Pinned Scripts</h3>
               </div>
               <div className="file-controls">
-                <button className="file-action-btn" onClick={handleExport} title="Download Pinned Scripts">
-                  <span>⬇ Save</span>
-                </button>
-                <button className="file-action-btn" onClick={handleImportClick} title="Upload JSON File">
-                  <span>⬆ Load</span>
-                </button>
+                <Button size="sm" variant="primary" onClick={handleExport} title="⬇ Save" />
+                <Button size="sm" variant="primary" onClick={handleImportClick} title="⬆ Load" />
                 <input
                   ref={fileInputRef}
                   type="file"

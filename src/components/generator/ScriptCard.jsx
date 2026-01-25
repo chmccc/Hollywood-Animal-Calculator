@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import Button from '../common/Button';
 
 const CATEGORY_ORDER = [
   "Genre", "Setting", "Protagonist", "Antagonist", "Supporting Character", "Theme & Event", "Finale"
@@ -48,36 +49,32 @@ function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, o
             ) : (
               <span className="script-name-display">{script.name || 'Untitled Script'}</span>
             )}
-            {script.fromSave && script.phaseName && (
-              <span className="production-phase-badge">{script.phaseName}</span>
-            )}
           </div>
-          <div className="gen-info-row">
-            {!script.fromSave && (
-              <>
-                <div className="gen-badge-group">
-                  <span className="gen-badge-label">Avg Comp</span>
-                  <span className={`gen-badge-val ${compClass}`}>
-                    {script.stats.avgComp.toFixed(1)}
-                  </span>
-                </div>
-                <div className="gen-badge-group">
-                  <span className="gen-badge-label">Movie Score</span>
-                  <span className="gen-badge-val val-mid">{script.stats.movieScore}</span>
-                </div>
-                <div className="gen-badge-group">
-                  <span className="gen-badge-label">Script Qual</span>
-                  <span className="gen-badge-val val-mid">{script.stats.maxScriptQuality}</span>
-                </div>
-              </>
-            )}
-            {script.fromSave && (
-              <span className="from-save-indicator">From Save</span>
-            )}
-          </div>
+          {!script.fromSave && (
+            <div className="gen-info-row">
+              <div className="gen-badge-group">
+                <span className="gen-badge-label">Avg Comp</span>
+                <span className={`gen-badge-val ${compClass}`}>
+                  {script.stats.avgComp.toFixed(1)}
+                </span>
+              </div>
+              <div className="gen-badge-group">
+                <span className="gen-badge-label">Movie Score</span>
+                <span className="gen-badge-val val-mid">{script.stats.movieScore}</span>
+              </div>
+              <div className="gen-badge-group">
+                <span className="gen-badge-label">Script Qual</span>
+                <span className="gen-badge-val val-mid">{script.stats.maxScriptQuality}</span>
+              </div>
+            </div>
+          )}
         </div>
-        <button
-          className={`pin-btn ${isPinned ? 'pinned' : ''}`}
+        {script.fromSave && script.phaseName && (
+          <span className="production-phase-badge">{script.phaseName}</span>
+        )}
+        <Button
+          size="icon"
+          variant={isPinned ? 'primary' : 'ghost'}
           title={isPinned ? 'Unpin' : 'Pin to Save'}
           onClick={(e) => {
             e.stopPropagation();
@@ -85,7 +82,7 @@ function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, o
           }}
         >
           {isPinned ? '★' : '☆'}
-        </button>
+        </Button>
       </div>
       
       <div className={`gen-details ${isExpanded ? '' : 'hidden'}`}>
@@ -101,7 +98,9 @@ function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, o
               >
                 {tagName} <small>{t.category}</small>
                 {onExcludeTag && !isFixed && (
-                  <button
+                  <Button
+                    size="icon"
+                    variant="danger"
                     className="chip-exclude-btn"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -110,20 +109,19 @@ function ScriptCard({ script, isPinned, onTogglePin, onNameChange, onTransfer, o
                     title="Exclude this tag and regenerate"
                   >
                     ×
-                  </button>
+                  </Button>
                 )}
               </span>
             );
           })}
         </div>
         <div className="gen-actions">
-          <span style={{ fontSize: '0.8rem', color: '#666' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            {script.fromSave && <span className="from-save-indicator">From Save · </span>}
             ID: {String(script.uniqueId).slice(-6)}
           </span>
           {onTransfer && (
-            <button className="transfer-link-btn" onClick={handleTransfer}>
-              Find Best Advertisers →
-            </button>
+            <Button size="sm" variant="primary" onClick={handleTransfer} title="Find Best Advertisers →" />
           )}
         </div>
       </div>

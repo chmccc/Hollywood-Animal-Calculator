@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LANGUAGES } from '../../data/gameData';
+import Button from './Button';
 import SaveImportModal from './SaveImportModal';
 
 function Header() {
@@ -26,21 +27,21 @@ function Header() {
                   <span className="studio-name">{studioName}</span>
                 )}
                 <span className="save-info">{tagCount} tags loaded</span>
-                <button 
-                  className="save-clear-btn"
+                <Button 
+                  size="icon"
+                  variant="primary"
                   onClick={clearSaveData}
                   title="Clear save data"
                 >
                   ×
-                </button>
+                </Button>
               </div>
             ) : (
-              <button 
-                className="load-save-btn"
+              <Button 
+                size="sm"
                 onClick={() => setIsModalOpen(true)}
-              >
-                Load Save
-              </button>
+                title="Load Save"
+              />
             )}
           </div>
 

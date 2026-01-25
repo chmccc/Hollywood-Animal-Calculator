@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
+import Button from './Button';
 
 /**
  * Modal for importing save.json data via file upload or paste.
@@ -74,7 +75,7 @@ function SaveImportModal({ isOpen, onClose }) {
       <div className="modal-content save-import-modal">
         <div className="modal-header">
           <h3>Load Save File</h3>
-          <button className="modal-close-btn" onClick={onClose}>×</button>
+          <Button size="icon" variant="ghost" onClick={onClose}>×</Button>
         </div>
 
         <div className="modal-body">
@@ -109,13 +110,13 @@ function SaveImportModal({ isOpen, onClose }) {
               onChange={handleFileChange}
               style={{ display: 'none' }}
             />
-            <button 
-              className="import-btn file-btn"
+            <Button 
+              size="lg"
+              fullWidth
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
-            >
-              {isLoading ? 'Loading...' : 'Choose File...'}
-            </button>
+              title={isLoading ? 'Loading...' : 'Choose File...'}
+            />
           </div>
 
           <div className="import-divider">
@@ -133,13 +134,13 @@ function SaveImportModal({ isOpen, onClose }) {
               onChange={(e) => setPasteContent(e.target.value)}
               disabled={isLoading}
             />
-            <button 
-              className="import-btn paste-btn"
+            <Button 
+              size="lg"
+              fullWidth
               onClick={handlePasteLoad}
               disabled={isLoading || !pasteContent.trim()}
-            >
-              {isLoading ? 'Loading...' : 'Load from Paste'}
-            </button>
+              title={isLoading ? 'Loading...' : 'Load from Paste'}
+            />
           </div>
         </div>
       </div>
