@@ -23,6 +23,11 @@
     --radius: 2px; /* Art Deco uses subtle corners */
 }
 
+html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+}
+
 body {
     background-color: var(--bg-color);
     color: var(--text-main);
@@ -382,7 +387,7 @@ h2 {
     padding: 8px 12px;
     border-radius: var(--radius);
     font-size: 0.9rem;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
     cursor: pointer;
     outline: none;
     appearance: none;
@@ -538,7 +543,8 @@ h3 {
     background: transparent;
     border: 2px solid var(--border-gold);
     color: var(--accent);
-    font-family: 'Inter', monospace;
+    font-family: 'Lato', sans-serif;
+    font-variant-numeric: tabular-nums;
     font-size: 1.1rem;
     font-weight: bold;
     text-align: center;
@@ -959,7 +965,8 @@ input[type="text"]::placeholder {
     font-weight: 700;
     font-size: 1.1rem;
     color: var(--text-main);
-    font-family: 'Inter', monospace;
+    font-family: 'Lato', sans-serif;
+    font-variant-numeric: tabular-nums;
 }
 
 .val-high { color: var(--success); }
@@ -1026,8 +1033,7 @@ input[type="text"]::placeholder {
 .results-container {
     display: flex;
     flex-direction: column;
-    gap: 25px; 
-    margin-top: 25px;
+    gap: 20px;
 }
 
 .results-container .card {
@@ -1196,7 +1202,7 @@ input[type="text"]::placeholder {
 .campaign-block.release { border-left: 4px solid var(--accent); }
 .campaign-block.post { border-left: 4px solid #ff5f5f; }
 .camp-title { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; font-weight: 600; }
-.camp-value { font-size: 1.25rem; font-weight: 700; color: var(--text-main); font-family: 'Inter', monospace; }
+.camp-value { font-size: 1.25rem; font-weight: 700; color: var(--text-main); font-family: 'Lato', sans-serif; font-variant-numeric: tabular-nums; }
 .total-duration-footer {
     text-align: center;
     color: var(--text-muted);
@@ -1210,7 +1216,6 @@ input[type="text"]::placeholder {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
-    padding: 20px;
     background: transparent;
     box-shadow: none;
     border: none;
@@ -1237,7 +1242,7 @@ input[type="text"]::placeholder {
     height: 3px;
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
 }
-.summary-item h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; }
+.summary-item h3 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; }
 .summary-value { font-size: 3rem; font-weight: 800; color: var(--text-main); line-height: 1; letter-spacing: -1px; }
 .sub-value { font-size: 1.2rem; color: var(--border-gold); font-weight: 500; margin-left: 4px; }
 
@@ -1246,11 +1251,12 @@ input[type="text"]::placeholder {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding-bottom: 8px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
 }
-.breakdown-row:last-child { border-bottom: none; }
+.breakdown-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 .b-label { font-size: 0.9rem; color: var(--text-muted); }
-.b-value { font-weight: 600; font-size: 1rem; font-family: 'Inter', monospace; }
+.b-value { font-weight: 600; font-size: 1rem; font-family: 'Lato', sans-serif; font-variant-numeric: tabular-nums; }
 .total-row {
     display: flex;
     justify-content: space-between;
@@ -1259,8 +1265,9 @@ input[type="text"]::placeholder {
     padding: 12px 15px;
     border-radius: var(--radius);
     border-left: 4px solid transparent;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
+.total-row:last-child { margin-bottom: 0; }
 .total-row:nth-child(2) { border-left-color: var(--accent); }
 .total-row:nth-child(3) { border-left-color: #a0a0ff; }
 
@@ -1273,7 +1280,7 @@ input[type="text"]::placeholder {
     .score-controls-wrapper { flex-direction: column; gap: 15px; }
     .results-row { grid-template-columns: 1fr; }
     .result-card { min-height: auto; }
-    .summary-row { grid-template-columns: 1fr; gap: 15px; }
+    .summary-row { grid-template-columns: 1fr; }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -1340,7 +1347,8 @@ input[type="text"]::placeholder {
     background: transparent;
     border: 2px solid var(--border-gold);
     color: var(--accent);
-    font-family: 'Inter', monospace;
+    font-family: 'Lato', sans-serif;
+    font-variant-numeric: tabular-nums;
     font-size: 1.2rem;
     font-weight: bold;
     text-align: center;
@@ -1396,7 +1404,8 @@ input[type="text"]::placeholder {
 }
 
 .week-val {
-    font-family: 'Inter', monospace;
+    font-family: 'Lato', sans-serif;
+    font-variant-numeric: tabular-nums;
     font-size: 1.2rem;
     font-weight: 700;
     color: var(--text-muted); /* Inactive/Zero color */
@@ -1506,7 +1515,7 @@ input[type="text"]::placeholder {
     padding: 8px 4px;
     cursor: pointer;
     transition: all 0.2s;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Lato', sans-serif;
 }
 
 .tag-browser-accordion-header:hover {
@@ -2218,6 +2227,7 @@ input[type="text"]::placeholder {
 @media (min-width: 1200px) {
     .pinned-layout {
         overflow-y: auto;
+        scrollbar-gutter: stable;
         height: 100%;
         padding-right: 10px;
         padding-bottom: 20px;
@@ -2300,6 +2310,7 @@ input[type="text"]::placeholder {
     .split-layout-left,
     .split-layout-right {
         overflow-y: auto;
+        scrollbar-gutter: stable;
         height: 100%;
         padding-right: 10px;
         padding-bottom: 20px;
@@ -2316,7 +2327,6 @@ input[type="text"]::placeholder {
 
     /* Adjust results container in split layout */
     .split-layout-right .results-container {
-        margin-top: 0;
         gap: 15px;
     }
 
@@ -2356,7 +2366,7 @@ input[type="text"]::placeholder {
 /* ========================================= */
 
 .validation-placeholder {
-    padding: 20px;
+    padding: 0 20px 20px 20px;
     text-align: center;
 }
 

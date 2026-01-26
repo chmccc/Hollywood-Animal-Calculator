@@ -367,7 +367,7 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
   }, [createScriptFromSynergy, pinScript]);
 
   if (isLoading || !initialized) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   return (

@@ -127,7 +127,7 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
   const distributionResults = calculateDistribution(comScore, ownedScreenings);
 
   if (isLoading || !initialized) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   return (
