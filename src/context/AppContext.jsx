@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, us
 import { CATEGORIES, STARTER_WHITELIST } from '../data/gameData';
 import { parseSaveFile } from '../utils/saveParser';
 import { calculateFreshnessFromSaveData } from '../utils/freshness';
+import { useSaveWatcher, isFileSystemAccessSupported } from '../hooks/useSaveWatcher';
 
 const AppContext = createContext(null);
 
@@ -15,6 +16,7 @@ const STORAGE_KEY_OWNED_THEATRES = 'ownedTheatres';
 const STORAGE_KEY_CODEX_BANNED = 'codexBannedTags';
 const STORAGE_KEY_FRESHNESS_DATA = 'freshnessData';
 const STORAGE_KEY_INCLUDE_UNRELEASED = 'freshnessIncludeUnreleased';
+const STORAGE_KEY_FILE_TIMESTAMP = 'saveFileTimestamp';
 
 // Helper function to beautify tag names
 function beautifyTagName(rawId, localizationMap = {}) {
@@ -133,6 +135,16 @@ export function AppProvider({ children }) {
       return saved === 'true';
     } catch (e) {
       return false;
+    }
+  });
+
+  // File modification timestamp (real-world time when save was written)
+  const [saveFileTimestamp, setSaveFileTimestamp] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_FILE_TIMESTAMP);
+      return saved ? parseInt(saved, 10) : null;
+    } catch (e) {
+      return null;
     }
   });
 
@@ -262,7 +274,8 @@ export function AppProvider({ children }) {
   }, []);
 
   // Load save data from JSON string
-  const loadSaveData = useCallback((jsonString, sourceName = 'save.json') => {
+  // fileTimestamp is the file's lastModified time from the filesystem (optional)
+  const loadSaveData = useCallback((jsonString, sourceName = 'save.json', fileTimestamp = null) => {
     const { 
       tagIds, 
       moviesInProduction: movies, 
@@ -287,6 +300,7 @@ export function AppProvider({ children }) {
     setOwnedTheatres(theatres ?? 0);
     setCodexBannedTags(bannedTags || new Set());
     setFreshnessData(freshness || null);
+    setSaveFileTimestamp(fileTimestamp);
     
     // Persist to localStorage
     try {
@@ -297,6 +311,11 @@ export function AppProvider({ children }) {
       localStorage.setItem(STORAGE_KEY_OWNED_THEATRES, String(theatres ?? 0));
       localStorage.setItem(STORAGE_KEY_CODEX_BANNED, JSON.stringify([...(bannedTags || [])]));
       localStorage.setItem(STORAGE_KEY_FRESHNESS_DATA, JSON.stringify(freshness || null));
+      if (fileTimestamp) {
+        localStorage.setItem(STORAGE_KEY_FILE_TIMESTAMP, String(fileTimestamp));
+      } else {
+        localStorage.removeItem(STORAGE_KEY_FILE_TIMESTAMP);
+      }
       if (studio) {
         localStorage.setItem(STORAGE_KEY_STUDIO_NAME, studio);
       } else {
@@ -319,6 +338,7 @@ export function AppProvider({ children }) {
     setOwnedTheatres(null); // Reset to null (no save loaded)
     setCodexBannedTags(new Set());
     setFreshnessData(null);
+    setSaveFileTimestamp(null);
     
     try {
       localStorage.removeItem(STORAGE_KEY_OWNED_TAGS);
@@ -329,6 +349,7 @@ export function AppProvider({ children }) {
       localStorage.removeItem(STORAGE_KEY_OWNED_THEATRES);
       localStorage.removeItem(STORAGE_KEY_CODEX_BANNED);
       localStorage.removeItem(STORAGE_KEY_FRESHNESS_DATA);
+      localStorage.removeItem(STORAGE_KEY_FILE_TIMESTAMP);
     } catch (e) {
       console.error('Failed to clear localStorage:', e);
     }
@@ -375,6 +396,17 @@ export function AppProvider({ children }) {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [tags, ownedTagIds]);
 
+  // Save directory watcher
+  const saveWatcher = useSaveWatcher({
+    onNewSave: useCallback((jsonString, fileName, fileTimestamp) => {
+      const result = loadSaveData(jsonString, fileName, fileTimestamp);
+      if (!result.success) {
+        console.error('Auto-load failed:', result.error);
+      }
+    }, [loadSaveData]),
+    pollInterval: 3000 // Check every 3 seconds
+  });
+
   const value = {
     currentLanguage,
     changeLanguage,
@@ -389,6 +421,7 @@ export function AppProvider({ children }) {
     // Save file state
     ownedTagIds,
     saveSourceName,
+    saveFileTimestamp,
     loadSaveData,
     clearSaveData,
     // Additional save data
@@ -402,6 +435,9 @@ export function AppProvider({ children }) {
     freshnessStats,
     freshnessIncludeUnreleased,
     toggleFreshnessIncludeUnreleased,
+    // Save directory watcher
+    saveWatcher,
+    isFileSystemAccessSupported: isFileSystemAccessSupported(),
   };
 
   return (

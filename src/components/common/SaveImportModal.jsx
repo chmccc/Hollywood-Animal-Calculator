@@ -5,15 +5,26 @@ import Button from './Button';
 /**
  * Modal for importing save.json data via file upload or paste.
  * Extracts owned tags from the save file's tagPool.
+ * Also supports watching a save directory for automatic updates.
  */
 function SaveImportModal({ isOpen, onClose }) {
-  const { loadSaveData } = useApp();
+  const { loadSaveData, saveWatcher, isFileSystemAccessSupported } = useApp();
   const [pasteContent, setPasteContent] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
 
   if (!isOpen) return null;
+
+  const handleWatchFolder = async () => {
+    setError(null);
+    const success = await saveWatcher.selectDirectory();
+    if (success) {
+      onClose();
+    } else if (saveWatcher.error) {
+      setError(saveWatcher.error);
+    }
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -24,7 +35,8 @@ function SaveImportModal({ isOpen, onClose }) {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const result = loadSaveData(event.target.result, file.name);
+      // Pass the file's lastModified timestamp
+      const result = loadSaveData(event.target.result, file.name, file.lastModified);
       setIsLoading(false);
       
       if (result.success) {
@@ -143,6 +155,61 @@ function SaveImportModal({ isOpen, onClose }) {
               title={isLoading ? 'Loading...' : 'Load from Paste'}
             />
           </div>
+
+          {/* Option 3: Watch Folder (Chrome/Edge only) */}
+          {isFileSystemAccessSupported && (
+            <>
+              <div className="import-divider">
+                <span>OR</span>
+              </div>
+
+              <div className="import-option watch-folder-option">
+                <h4>Option 3: Watch Save Folder</h4>
+                <p>
+                  Automatically load saves when you save the game. 
+                  Select your save folder and the calculator will monitor it for changes.
+                </p>
+                {saveWatcher.isWatching ? (
+                  <div className="watch-status">
+                    <div className="watch-active">
+                      <span className="watch-indicator"></span>
+                      <span>Watching: <strong>{saveWatcher.directoryName}</strong></span>
+                    </div>
+                    {saveWatcher.lastLoadedFile && (
+                      <p className="last-loaded">Last loaded: {saveWatcher.lastLoadedFile}</p>
+                    )}
+                    <div className="watch-actions">
+                      <Button 
+                        size="md"
+                        variant="primary"
+                        onClick={() => saveWatcher.forceReload()}
+                        title="Reload Now"
+                      />
+                      <Button 
+                        size="md"
+                        onClick={() => {
+                          saveWatcher.stopWatching();
+                        }}
+                        title="Stop Watching"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <Button 
+                    size="lg"
+                    fullWidth
+                    variant="primary"
+                    onClick={handleWatchFolder}
+                    disabled={saveWatcher.isLoading}
+                    title={saveWatcher.isLoading ? 'Selecting...' : 'Select Save Folder...'}
+                  />
+                )}
+                <p className="browser-note">
+                  <em>Note: This feature requires Chrome or Edge.</em>
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

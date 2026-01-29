@@ -69,7 +69,7 @@ export function useScriptGenerator() {
     
     // Get production phase name
     const phaseNames = {
-      0: 'Shelved',
+      0: 'Pre-Prod',
       1: 'Production',
       2: 'Production',
       3: 'Production',

@@ -1430,6 +1430,7 @@ input[type="text"]::placeholder {
     gap: 12px;
     flex-grow: 1;
     justify-content: flex-end;
+    flex-wrap: wrap;
 }
 
 /* ========================================= */
@@ -2349,6 +2350,74 @@ input[type="text"]::placeholder {
 }
 
 /* ========================================= */
+/* --- SAVE WATCHER STYLES --- */
+/* ========================================= */
+
+.watch-folder-option .browser-note {
+    margin-top: 12px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.watch-status {
+    background: rgba(76, 217, 100, 0.08);
+    border: 1px solid var(--success);
+    border-radius: var(--radius);
+    padding: 12px;
+}
+
+.watch-active {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.watch-indicator,
+.watch-indicator-header {
+    width: 10px;
+    height: 10px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse-glow 2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 4px var(--success);
+        opacity: 1;
+    }
+    50% {
+        box-shadow: 0 0 12px var(--success), 0 0 20px var(--success);
+        opacity: 0.8;
+    }
+}
+
+.watch-status .last-loaded {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 8px 0;
+}
+
+.watch-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.watch-actions .btn {
+    flex: 1;
+}
+
+/* Header watch indicator */
+.watch-indicator-header {
+    width: 8px;
+    height: 8px;
+}
+
+/* ========================================= */
 /* --- HEADER SAVE STATUS STYLES --- */
 /* ========================================= */
 
@@ -2367,13 +2436,18 @@ input[type="text"]::placeholder {
     border: 1px solid var(--border-gold);
     padding: 6px 12px;
     border-radius: var(--radius);
-    white-space: nowrap;
+    flex-wrap: wrap;
 }
 
 .save-info {
     color: var(--accent);
     font-size: 0.85rem;
     font-weight: 600;
+}
+
+.save-timestamp {
+    color: var(--text-muted);
+    font-size: 0.85rem;
 }
 
 .studio-name {
