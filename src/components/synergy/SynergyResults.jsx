@@ -100,6 +100,13 @@ function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = f
         </div>
       </LayoutCard>
 
+      {audienceData && (
+        <TargetAudience
+          targetAudiences={audienceData.targetAudiences}
+          thresholds={audienceData.thresholds}
+        />
+      )}
+
       <LayoutCard 
         className="result-card"
         title="Conflicts"
@@ -126,13 +133,6 @@ function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = f
           )}
         </div>
       </LayoutCard>
-
-      {audienceData && (
-        <TargetAudience
-          targetAudiences={audienceData.targetAudiences}
-          thresholds={audienceData.thresholds}
-        />
-      )}
 
       {(onTransfer || onPin) && (
         <div className="action-area" style={{ marginTop: 0, display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>

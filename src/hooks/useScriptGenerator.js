@@ -69,11 +69,11 @@ export function useScriptGenerator() {
     
     // Get production phase name
     const phaseNames = {
-      0: 'Script',
-      1: 'Pre-prod',
-      2: 'Pre-prod',
+      0: 'Shelved',
+      1: 'Production',
+      2: 'Production',
       3: 'Production',
-      4: 'Post-prod'
+      4: 'Distribution'
     };
     const phaseName = phaseNames[movie.currentStage] || `Stage ${movie.currentStage}`;
     

@@ -76,7 +76,7 @@ function extractMoviesInProduction(stateJson) {
       genreIdsAndFractions: m.genreIdsAndFractions || [],
       settingIds: m.settingIds || []
     }))
-    .sort((a, b) => a.currentStage - b.currentStage); // Sort by phase (0=Script, 2=Preprod, 3=Prod)
+    .sort((a, b) => a.currentStage - b.currentStage); // Sort by phase (0=Script, 1-3=Production, 4=Distribution)
 }
 
 /**
