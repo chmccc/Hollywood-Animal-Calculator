@@ -1905,6 +1905,194 @@ input[type="text"]::placeholder {
 }
 
 /* ========================================= */
+/* --- FRESHNESS METER (Staleness Pips) --- */
+/* ========================================= */
+
+/* Card with freshness needs extra bottom padding */
+.tag-browser-card.has-freshness {
+    padding-bottom: 20px;
+}
+
+/* Freshness meter container - positioned at bottom of card */
+.freshness-meter {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 3px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.08);
+}
+
+/* Individual pip */
+.freshness-pip {
+    width: 8px;
+    height: 6px;
+    border-radius: 1px;
+    background: rgba(0, 0, 0, 0.15);
+    transition: background 0.15s ease;
+}
+
+/* Filled pip - color based on freshness status */
+.freshness-meter.freshness-fresh .freshness-pip.filled {
+    background: #4a8c4a; /* Green - fresh */
+}
+
+.freshness-meter.freshness-stale .freshness-pip.filled {
+    background: #b8860b; /* Dark goldenrod - stale */
+}
+
+.freshness-meter.freshness-stale .freshness-pip.filled.stale-zone {
+    background: #cd853f; /* Peru/orange - stale zone pips */
+}
+
+.freshness-meter.freshness-rotten .freshness-pip.filled {
+    background: #8b4513; /* Saddle brown for first 3 */
+}
+
+.freshness-meter.freshness-rotten .freshness-pip.filled.stale-zone {
+    background: #a0522d; /* Sienna for 4-5 */
+}
+
+.freshness-meter.freshness-rotten .freshness-pip.filled.rotten-zone {
+    background: #c41e3a; /* Cardinal red - rotten zone pips */
+}
+
+/* On hover, show meter more prominently */
+.tag-browser-card:hover .freshness-meter {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+/* Selected card freshness styling */
+.tag-browser-card.selected-locked .freshness-meter,
+.tag-browser-card.selected-excluded .freshness-meter,
+.tag-browser-card.selected-selected .freshness-meter {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Freshness toggle row above tag browser */
+.freshness-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, rgba(90, 70, 50, 0.3) 0%, rgba(60, 45, 30, 0.4) 100%);
+    border-radius: var(--radius);
+    border: 1px solid rgba(180, 140, 60, 0.3);
+}
+
+.freshness-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    user-select: none;
+    transition: color 0.15s ease;
+}
+
+.freshness-toggle:hover {
+    color: var(--text-main);
+}
+
+/* Hide default checkbox */
+.freshness-toggle input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Custom art deco checkbox */
+.freshness-checkbox {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #4a3a2a 0%, #3a2a1a 100%);
+    border: 2px solid #6b5a4a;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+/* Corner accents on checkbox */
+.freshness-checkbox::before {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 4px;
+    height: 4px;
+    border-top: 1px solid rgba(180, 140, 60, 0.4);
+    border-left: 1px solid rgba(180, 140, 60, 0.4);
+}
+
+.freshness-checkbox::after {
+    content: '';
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 4px;
+    height: 4px;
+    border-bottom: 1px solid rgba(180, 140, 60, 0.4);
+    border-right: 1px solid rgba(180, 140, 60, 0.4);
+}
+
+/* Checkmark (hidden by default) */
+.freshness-checkmark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 10px;
+    height: 10px;
+    transition: transform 0.15s ease;
+}
+
+.freshness-checkmark::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 5px;
+    border-left: 2px solid #d4af37;
+    border-bottom: 2px solid #d4af37;
+    transform: translate(-50%, -70%) rotate(-45deg);
+}
+
+/* Hover state */
+.freshness-toggle:hover .freshness-checkbox {
+    border-color: #8b7a6a;
+    background: linear-gradient(135deg, #5a4a3a 0%, #4a3a2a 100%);
+}
+
+/* Checked state */
+.freshness-toggle input[type="checkbox"]:checked + .freshness-checkbox {
+    background: linear-gradient(135deg, #c4a030 0%, #a08020 100%);
+    border-color: #d4af37;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+}
+
+.freshness-toggle input[type="checkbox"]:checked + .freshness-checkbox .freshness-checkmark {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.freshness-toggle input[type="checkbox"]:checked + .freshness-checkbox .freshness-checkmark::before {
+    border-color: #3a2a1a;
+}
+
+/* Focus state for accessibility */
+.freshness-toggle input[type="checkbox"]:focus-visible + .freshness-checkbox {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+}
+
+/* ========================================= */
 /* --- BROWSER MODE GENRE SLIDERS --- */
 /* ========================================= */
 

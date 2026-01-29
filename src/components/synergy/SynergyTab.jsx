@@ -59,7 +59,7 @@ function GenreSlider({ tagId, tagName, value, onChange }) {
 }
 
 function SynergyTab({ onTransferToAdvertisers = null }) {
-  const { categories, isLoading, tags, compatibility, maxTagSlots, ownedTagIds } = useApp();
+  const { categories, isLoading, tags, compatibility, maxTagSlots, ownedTagIds, tagFreshness, freshnessIncludeUnreleased, toggleFreshnessIncludeUnreleased } = useApp();
   const { calculateSynergy } = useSynergyCalculation();
   const { analyzeMovie } = useAudienceAnalysis();
   const { pinScript } = useScriptGeneratorContext();
@@ -414,33 +414,51 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                 ))}
               </div>
             ) : (
-              <TagBrowser
-                selectedTagIds={selectedTagIds}
-                onToggle={handleTagToggle}
-                variant="selected"
-                scoreDeltas={scoreDeltas}
-                showDeltas={true}
-                optionalCategories={ELEMENT_CATEGORIES}
-                maxOptionalTags={MAX_ELEMENTS}
-                renderCategoryExtra={(category) => {
-                  if (category === 'Genre' && selectedGenres.length > 1) {
-                    return (
-                      <div className="browser-genre-sliders">
-                        {selectedGenres.map(genre => (
-                          <GenreSlider
-                            key={genre.id}
-                            tagId={genre.id}
-                            tagName={genre.name}
-                            value={genrePercents[genre.id] ?? 50}
-                            onChange={handleGenrePercentChange}
-                          />
-                        ))}
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
+              <>
+                {tagFreshness && (
+                  <div className="freshness-toggle-row">
+                    <label className="freshness-toggle">
+                      <input
+                        type="checkbox"
+                        checked={freshnessIncludeUnreleased}
+                        onChange={toggleFreshnessIncludeUnreleased}
+                      />
+                      <span className="freshness-checkbox">
+                        <span className="freshness-checkmark" />
+                      </span>
+                      <span>Include unreleased films in staleness</span>
+                    </label>
+                  </div>
+                )}
+                <TagBrowser
+                  selectedTagIds={selectedTagIds}
+                  onToggle={handleTagToggle}
+                  variant="selected"
+                  scoreDeltas={scoreDeltas}
+                  showDeltas={true}
+                  showFreshness={!!tagFreshness}
+                  optionalCategories={ELEMENT_CATEGORIES}
+                  maxOptionalTags={MAX_ELEMENTS}
+                  renderCategoryExtra={(category) => {
+                    if (category === 'Genre' && selectedGenres.length > 1) {
+                      return (
+                        <div className="browser-genre-sliders">
+                          {selectedGenres.map(genre => (
+                            <GenreSlider
+                              key={genre.id}
+                              tagId={genre.id}
+                              tagName={genre.name}
+                              value={genrePercents[genre.id] ?? 50}
+                              onChange={handleGenrePercentChange}
+                            />
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </>
             )}
             
             {inputMode === 'dropdown' ? (

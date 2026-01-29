@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { MULTI_SELECT_CATEGORIES } from '../../data/gameData';
+import { getTagFreshnessInfo, getFreshnessColorClass, FRESHNESS_THRESHOLDS } from '../../utils/freshness';
 
 // Format delta value for display
 function formatDelta(value) {
@@ -20,6 +21,28 @@ function getDeltaClass(value) {
 }
 
 /**
+ * FreshnessMeter - Displays staleness as pips (0-6+)
+ * Lower = fresher (green), higher = staler (orange/red)
+ */
+function FreshnessMeter({ count, status }) {
+  // Show 7 pips (0-6+), filled based on count
+  const maxPips = 7;
+  const filledPips = Math.min(count, maxPips);
+  const colorClass = getFreshnessColorClass(status);
+  
+  return (
+    <div className={`freshness-meter ${colorClass}`} title={`${count} movie${count !== 1 ? 's' : ''} in last 500 days`}>
+      {Array.from({ length: maxPips }, (_, i) => (
+        <span 
+          key={i} 
+          className={`freshness-pip ${i < filledPips ? 'filled' : ''} ${i >= FRESHNESS_THRESHOLDS.STALE_MAX + 1 ? 'rotten-zone' : i >= FRESHNESS_THRESHOLDS.FRESH_MAX + 1 ? 'stale-zone' : ''}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
  * TagBrowser - A vertical scrolling list of all tags organized by category.
  * Each tag is rendered as a clickable card styled after the game's tan/cream cards.
  * Categories are displayed as collapsible accordions.
@@ -32,9 +55,10 @@ function getDeltaClass(value) {
  * @param {function} renderCategoryExtra - Optional render prop: (category) => ReactNode for extra content inside accordion
  * @param {string[]} optionalCategories - Optional list of category names that count toward the optional tag limit
  * @param {number} maxOptionalTags - Optional maximum number of tags allowed from optional categories (default: 10)
+ * @param {boolean} showFreshness - Whether to show the freshness meter on cards
  */
-function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas = {}, showDeltas = false, renderCategoryExtra = null, optionalCategories = [], maxOptionalTags = 10 }) {
-  const { categories, getTagsByCategory, tags, codexBannedTags } = useApp();
+function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas = {}, showDeltas = false, renderCategoryExtra = null, optionalCategories = [], maxOptionalTags = 10, showFreshness = false }) {
+  const { categories, getTagsByCategory, tags, codexBannedTags, tagFreshness } = useApp();
   
   // Track which categories are expanded (all start collapsed)
   const [expandedCategories, setExpandedCategories] = useState(() => 
@@ -154,10 +178,17 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                 // Category class for styling
                 const categoryClass = `cat-${category.toLowerCase().replace(/\s+&?\s*/g, '-')}`;
 
+                // Get freshness info if enabled (exclude Genre and Setting - not part of staleness mechanic)
+                const showFreshnessForTag = showFreshness && tagFreshness && 
+                  category !== 'Genre' && category !== 'Setting';
+                const freshnessInfo = showFreshnessForTag
+                  ? getTagFreshnessInfo(tag.id, tagFreshness)
+                  : null;
+
                 return (
                   <button
                     key={tag.id}
-                    className={`tag-browser-card ${categoryClass} ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${isTagDisabled ? 'tag-disabled' : ''} ${isBanned ? 'tag-banned' : ''}`.trim()}
+                    className={`tag-browser-card ${categoryClass} ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${showFreshnessForTag ? 'has-freshness' : ''} ${isTagDisabled ? 'tag-disabled' : ''} ${isBanned ? 'tag-banned' : ''}`.trim()}
                     onClick={() => !isTagDisabled && handleCardClick(tag.id, category)}
                     type="button"
                     disabled={isTagDisabled}
@@ -173,6 +204,9 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                           C: {formatDelta(comDelta)}
                         </span>
                       </span>
+                    )}
+                    {freshnessInfo && (
+                      <FreshnessMeter count={freshnessInfo.count} status={freshnessInfo.status} />
                     )}
                   </button>
                 );

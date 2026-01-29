@@ -2,7 +2,7 @@
  * Parse a Hollywood Animal save.json file and extract game data.
  * 
  * @param {string} jsonString - The raw JSON string content of the save file
- * @returns {Object} - Extracted data including tagIds, moviesInProduction, maxTagSlots, studioName, ownedTheatres, and error
+ * @returns {Object} - Extracted data including tagIds, moviesInProduction, maxTagSlots, studioName, ownedTheatres, freshnessData, and error
  */
 export function parseSaveFile(jsonString) {
   try {
@@ -41,6 +41,7 @@ export function parseSaveFile(jsonString) {
     const studioName = stateJson.studioName || null;
     const ownedTheatres = extractOwnedTheatres(stateJson);
     const codexBannedTags = extractCodexBannedTags(stateJson);
+    const freshnessData = extractFreshnessData(stateJson);
     
     return { 
       tagIds, 
@@ -49,6 +50,7 @@ export function parseSaveFile(jsonString) {
       studioName,
       ownedTheatres,
       codexBannedTags,
+      freshnessData,
       error: null 
     };
   } catch (e) {
@@ -154,4 +156,77 @@ function extractCodexBannedTags(stateJson) {
   
   // The keys of currentTagsInCodex are the banned tag IDs
   return new Set(Object.keys(codexTags));
+}
+
+/**
+ * Parse a game date string, filtering out invalid/null dates.
+ * @param {string} dateStr - Date string in format "YYYY-MM-DDTHH:MM:SS"
+ * @returns {Date|null} - Parsed date or null if invalid
+ */
+function parseGameDate(dateStr) {
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  // Filter out invalid dates and default null dates (0001-01-01)
+  if (isNaN(date.getTime()) || date.getFullYear() < 1900) {
+    return null;
+  }
+  return date;
+}
+
+/**
+ * Extract data needed for freshness calculation.
+ * Freshness = count of movies released in last 500 days containing a tag.
+ * 
+ * @param {Object} stateJson - The stateJson object from save file
+ * @returns {Object} - Freshness data including currentDate, releasedMovies, unreleasedMovies
+ */
+function extractFreshnessData(stateJson) {
+  const movies = stateJson.movies || [];
+  
+  // Separate released vs unreleased movies
+  const releasedMovies = [];
+  const unreleasedMovies = [];
+  
+  movies.forEach(movie => {
+    const releaseDate = parseGameDate(movie.realReleaseDate);
+    const movieData = {
+      id: movie.id,
+      name: movie.name || movie.Name || `Movie ${movie.id}`,
+      contentIds: movie.contentIds || [],
+      realReleaseDate: movie.realReleaseDate,
+    };
+    
+    if (releaseDate) {
+      releasedMovies.push({ ...movieData, releaseDate });
+    } else {
+      unreleasedMovies.push(movieData);
+    }
+  });
+  
+  // Determine current game date from logs and movies
+  const logs = stateJson.logs || [];
+  const logDates = logs
+    .map(l => parseGameDate(l.timestamp))
+    .filter(d => d !== null);
+  
+  const movieDates = releasedMovies.map(m => m.releaseDate);
+  const allDates = [...logDates, ...movieDates];
+  
+  let currentDate;
+  if (allDates.length > 0) {
+    currentDate = new Date(Math.max(...allDates.map(d => d.getTime())));
+  } else {
+    // Fallback: calculate from timePassed (format: "DAYS.HH:MM:SS")
+    const timePassedMatch = stateJson.timePassed?.match(/^(\d+)/);
+    const daysPassed = timePassedMatch ? parseInt(timePassedMatch[1]) : 0;
+    // Game starts around 1928-09-01
+    currentDate = new Date('1928-09-01');
+    currentDate.setDate(currentDate.getDate() + daysPassed);
+  }
+  
+  return {
+    currentDate: currentDate.toISOString(),
+    releasedMovies,
+    unreleasedMovies,
+  };
 }

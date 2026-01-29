@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { CATEGORIES, STARTER_WHITELIST } from '../data/gameData';
 import { parseSaveFile } from '../utils/saveParser';
+import { calculateFreshnessFromSaveData } from '../utils/freshness';
 
 const AppContext = createContext(null);
 
@@ -12,6 +13,8 @@ const STORAGE_KEY_MAX_TAG_SLOTS = 'maxTagSlots';
 const STORAGE_KEY_STUDIO_NAME = 'studioName';
 const STORAGE_KEY_OWNED_THEATRES = 'ownedTheatres';
 const STORAGE_KEY_CODEX_BANNED = 'codexBannedTags';
+const STORAGE_KEY_FRESHNESS_DATA = 'freshnessData';
+const STORAGE_KEY_INCLUDE_UNRELEASED = 'freshnessIncludeUnreleased';
 
 // Helper function to beautify tag names
 function beautifyTagName(rawId, localizationMap = {}) {
@@ -110,6 +113,26 @@ export function AppProvider({ children }) {
       return saved ? new Set(JSON.parse(saved)) : new Set();
     } catch (e) {
       return new Set();
+    }
+  });
+
+  // Freshness data from save file
+  const [freshnessData, setFreshnessData] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_FRESHNESS_DATA);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  // Setting: include unreleased movies in freshness calculation
+  const [freshnessIncludeUnreleased, setFreshnessIncludeUnreleased] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_INCLUDE_UNRELEASED);
+      return saved === 'true';
+    } catch (e) {
+      return false;
     }
   });
 
@@ -247,6 +270,7 @@ export function AppProvider({ children }) {
       studioName: studio,
       ownedTheatres: theatres,
       codexBannedTags: bannedTags,
+      freshnessData: freshness,
       error 
     } = parseSaveFile(jsonString);
     
@@ -262,6 +286,7 @@ export function AppProvider({ children }) {
     setStudioName(studio || null);
     setOwnedTheatres(theatres ?? 0);
     setCodexBannedTags(bannedTags || new Set());
+    setFreshnessData(freshness || null);
     
     // Persist to localStorage
     try {
@@ -271,6 +296,7 @@ export function AppProvider({ children }) {
       localStorage.setItem(STORAGE_KEY_MAX_TAG_SLOTS, String(slots || 10));
       localStorage.setItem(STORAGE_KEY_OWNED_THEATRES, String(theatres ?? 0));
       localStorage.setItem(STORAGE_KEY_CODEX_BANNED, JSON.stringify([...(bannedTags || [])]));
+      localStorage.setItem(STORAGE_KEY_FRESHNESS_DATA, JSON.stringify(freshness || null));
       if (studio) {
         localStorage.setItem(STORAGE_KEY_STUDIO_NAME, studio);
       } else {
@@ -292,6 +318,7 @@ export function AppProvider({ children }) {
     setStudioName(null);
     setOwnedTheatres(null); // Reset to null (no save loaded)
     setCodexBannedTags(new Set());
+    setFreshnessData(null);
     
     try {
       localStorage.removeItem(STORAGE_KEY_OWNED_TAGS);
@@ -301,10 +328,44 @@ export function AppProvider({ children }) {
       localStorage.removeItem(STORAGE_KEY_STUDIO_NAME);
       localStorage.removeItem(STORAGE_KEY_OWNED_THEATRES);
       localStorage.removeItem(STORAGE_KEY_CODEX_BANNED);
+      localStorage.removeItem(STORAGE_KEY_FRESHNESS_DATA);
     } catch (e) {
       console.error('Failed to clear localStorage:', e);
     }
   }, []);
+
+  // Toggle include unreleased setting
+  const toggleFreshnessIncludeUnreleased = useCallback(() => {
+    setFreshnessIncludeUnreleased(prev => {
+      const newVal = !prev;
+      try {
+        localStorage.setItem(STORAGE_KEY_INCLUDE_UNRELEASED, String(newVal));
+      } catch (e) {
+        console.error('Failed to save setting:', e);
+      }
+      return newVal;
+    });
+  }, []);
+
+  // Computed: tag freshness map (recalculates when data or setting changes)
+  const tagFreshness = useMemo(() => {
+    if (!freshnessData) return null;
+    const { tagFreshness: freshMap } = calculateFreshnessFromSaveData(
+      freshnessData, 
+      freshnessIncludeUnreleased
+    );
+    return freshMap;
+  }, [freshnessData, freshnessIncludeUnreleased]);
+
+  // Freshness stats for display
+  const freshnessStats = useMemo(() => {
+    if (!freshnessData) return null;
+    const { stats } = calculateFreshnessFromSaveData(
+      freshnessData,
+      freshnessIncludeUnreleased
+    );
+    return stats;
+  }, [freshnessData, freshnessIncludeUnreleased]);
 
   // Get tags by category, filtered by owned tags if a save is loaded
   const getTagsByCategory = useCallback((category) => {
@@ -335,7 +396,12 @@ export function AppProvider({ children }) {
     maxTagSlots,
     studioName,
     ownedTheatres,
-    codexBannedTags
+    codexBannedTags,
+    // Freshness data
+    tagFreshness,
+    freshnessStats,
+    freshnessIncludeUnreleased,
+    toggleFreshnessIncludeUnreleased,
   };
 
   return (
