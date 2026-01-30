@@ -59,7 +59,7 @@ function GenreSlider({ tagId, tagName, value, onChange }) {
 }
 
 function SynergyTab({ onTransferToAdvertisers = null }) {
-  const { categories, isLoading, tags, compatibility, maxTagSlots, ownedTagIds, tagFreshness, freshnessIncludeUnreleased, toggleFreshnessIncludeUnreleased, showAdvancedDeltas, toggleAdvancedDeltas } = useApp();
+  const { categories, isLoading, tags, compatibility, maxTagSlots, ownedTagIds, tagFreshness, freshnessIncludeUnreleased, toggleFreshnessIncludeUnreleased, showBonusEffects, toggleBonusEffects, showAudienceEffects, toggleAudienceEffects } = useApp();
   const { calculateSynergy } = useSynergyCalculation();
   const { analyzeMovie } = useAudienceAnalysis();
   const { pinScript } = useScriptGeneratorContext();
@@ -429,13 +429,24 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                   <label className="freshness-toggle">
                     <input
                       type="checkbox"
-                      checked={showAdvancedDeltas}
-                      onChange={toggleAdvancedDeltas}
+                      checked={showBonusEffects}
+                      onChange={toggleBonusEffects}
                     />
                     <span className="freshness-checkbox">
                       <span className="freshness-checkmark" />
                     </span>
-                    <span>Show bonus breakdown</span>
+                    <span>Bonus effects</span>
+                  </label>
+                  <label className="freshness-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showAudienceEffects}
+                      onChange={toggleAudienceEffects}
+                    />
+                    <span className="freshness-checkbox">
+                      <span className="freshness-checkmark" />
+                    </span>
+                    <span>Audience effects</span>
                   </label>
                 </div>
                 <TagBrowser

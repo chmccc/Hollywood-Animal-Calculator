@@ -1787,17 +1787,32 @@ input[type="text"]::placeholder {
 .tag-name {
     font-weight: 600;
     font-size: 0.85rem;
+    min-height: 2.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.2;
 }
 
-.tag-deltas {
+/* Content section - contains freshness + all score info, has divider */
+.tag-content {
     display: flex;
-    gap: 8px;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
     font-size: 0.7rem;
     font-weight: 600;
     width: 100%;
-    justify-content: center;
-    padding-top: 2px;
+    padding-top: 4px;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Primary scores row (A/C values) */
+.tag-scores-primary {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
 }
 
 .tag-delta {
@@ -1819,16 +1834,16 @@ input[type="text"]::placeholder {
     color: #7a6b55;
 }
 
-/* Advanced deltas mode - wider fixed width for secondary row */
+/* Advanced deltas mode - wider fixed width for secondary row + audience badges */
 .tag-browser-card.has-advanced-deltas {
-    width: 170px;  /* Fixed width to prevent layout shift */
-    min-width: 170px;
-    max-width: 170px;
+    width: 180px;  /* Fixed width to prevent layout shift */
+    min-width: 180px;
+    max-width: 180px;
     padding-bottom: 6px;
 }
 
-/* Secondary delta row (synergy + bonus breakdown) */
-.tag-deltas-secondary {
+/* Breakdown row (SB/CB/AB values) - advanced mode */
+.tag-scores-breakdown {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1866,9 +1881,54 @@ input[type="text"]::placeholder {
     font-weight: 300;
 }
 
-.tag-delta-mini-group {
+/* Audience section - demographic tier change badges in 2 rows */
+.tag-audience {
     display: flex;
-    gap: 4px;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+}
+
+.tag-audience-row {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    padding-top: 3px;
+    margin-top: 2px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+/* Audience badge - mini pill for demographic changes */
+.audience-badge {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 700;
+    padding: 1px 3px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    min-width: 26px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.audience-badge.audience-up {
+    background: rgba(45, 122, 58, 0.2);
+    color: #2d7a3a;
+    border: 1px solid rgba(45, 122, 58, 0.4);
+}
+
+.audience-badge.audience-down {
+    background: rgba(170, 51, 51, 0.2);
+    color: #a33;
+    border: 1px solid rgba(170, 51, 51, 0.4);
+}
+
+.audience-badge.audience-neutral {
+    background: rgba(100, 90, 80, 0.15);
+    color: #7a6b55;
+    border: 1px solid rgba(100, 90, 80, 0.3);
 }
 
 /* Outline when at least one positive and none negative - green border */
@@ -1991,28 +2051,25 @@ input[type="text"]::placeholder {
 /* --- FRESHNESS METER (Staleness Pips) --- */
 /* ========================================= */
 
-/* Card with freshness needs extra bottom padding */
+/* Card with freshness no longer needs extra bottom padding - meter is inline now */
 .tag-browser-card.has-freshness {
-    padding-bottom: 20px;
+    /* padding handled by flex gap */
 }
 
-/* Freshness meter container - positioned at bottom of card */
+/* Freshness meter container - inline flow after tag name */
 .freshness-meter {
-    position: absolute;
-    bottom: 4px;
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
     gap: 3px;
-    padding: 2px 4px;
+    padding: 2px 5px;
+    margin: 2px 0;
     border-radius: 3px;
     background: rgba(0, 0, 0, 0.08);
 }
 
 /* Individual pip */
 .freshness-pip {
-    width: 8px;
-    height: 6px;
+    width: 9px;
+    height: 7px;
     border-radius: 1px;
     background: rgba(0, 0, 0, 0.15);
     transition: background 0.15s ease;

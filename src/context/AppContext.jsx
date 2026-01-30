@@ -17,7 +17,8 @@ const STORAGE_KEY_CODEX_BANNED = 'codexBannedTags';
 const STORAGE_KEY_FRESHNESS_DATA = 'freshnessData';
 const STORAGE_KEY_INCLUDE_UNRELEASED = 'freshnessIncludeUnreleased';
 const STORAGE_KEY_FILE_TIMESTAMP = 'saveFileTimestamp';
-const STORAGE_KEY_ADVANCED_DELTAS = 'showAdvancedDeltas';
+const STORAGE_KEY_SHOW_BONUS_EFFECTS = 'showBonusEffects';
+const STORAGE_KEY_SHOW_AUDIENCE_EFFECTS = 'showAudienceEffects';
 
 // Helper function to beautify tag names
 function beautifyTagName(rawId, localizationMap = {}) {
@@ -139,10 +140,20 @@ export function AppProvider({ children }) {
     }
   });
 
-  // Setting: show advanced delta breakdown (synergy + bonus deltas)
-  const [showAdvancedDeltas, setShowAdvancedDeltas] = useState(() => {
+  // Setting: show bonus effects breakdown (SB/CB/AB deltas)
+  const [showBonusEffects, setShowBonusEffects] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_ADVANCED_DELTAS);
+      const saved = localStorage.getItem(STORAGE_KEY_SHOW_BONUS_EFFECTS);
+      return saved === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  // Setting: show target audience effects (demographic tier changes)
+  const [showAudienceEffects, setShowAudienceEffects] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_SHOW_AUDIENCE_EFFECTS);
       return saved === 'true';
     } catch (e) {
       return false;
@@ -379,12 +390,25 @@ export function AppProvider({ children }) {
     });
   }, []);
 
-  // Toggle advanced delta breakdown display
-  const toggleAdvancedDeltas = useCallback(() => {
-    setShowAdvancedDeltas(prev => {
+  // Toggle bonus effects display (SB/CB/AB)
+  const toggleBonusEffects = useCallback(() => {
+    setShowBonusEffects(prev => {
       const newVal = !prev;
       try {
-        localStorage.setItem(STORAGE_KEY_ADVANCED_DELTAS, String(newVal));
+        localStorage.setItem(STORAGE_KEY_SHOW_BONUS_EFFECTS, String(newVal));
+      } catch (e) {
+        console.error('Failed to save setting:', e);
+      }
+      return newVal;
+    });
+  }, []);
+
+  // Toggle audience effects display (demographic badges)
+  const toggleAudienceEffects = useCallback(() => {
+    setShowAudienceEffects(prev => {
+      const newVal = !prev;
+      try {
+        localStorage.setItem(STORAGE_KEY_SHOW_AUDIENCE_EFFECTS, String(newVal));
       } catch (e) {
         console.error('Failed to save setting:', e);
       }
@@ -459,9 +483,11 @@ export function AppProvider({ children }) {
     freshnessStats,
     freshnessIncludeUnreleased,
     toggleFreshnessIncludeUnreleased,
-    // Advanced deltas setting
-    showAdvancedDeltas,
-    toggleAdvancedDeltas,
+    // Advanced display settings
+    showBonusEffects,
+    toggleBonusEffects,
+    showAudienceEffects,
+    toggleAudienceEffects,
     // Save directory watcher
     saveWatcher,
     isFileSystemAccessSupported: isFileSystemAccessSupported(),

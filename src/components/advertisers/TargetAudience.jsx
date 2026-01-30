@@ -1,6 +1,14 @@
 import LayoutCard from '../common/LayoutCard';
 
+// Fixed display order: Boys, Girls, Young Men, Young Women, Men, Women
+const AUDIENCE_ORDER = ['TM', 'TF', 'YM', 'YF', 'AM', 'AF'];
+
 function TargetAudience({ targetAudiences, thresholds }) {
+  // Sort audiences by fixed order to prevent re-ordering on score changes
+  const sortedAudiences = [...targetAudiences].sort((a, b) => {
+    return AUDIENCE_ORDER.indexOf(a.id) - AUDIENCE_ORDER.indexOf(b.id);
+  });
+
   return (
     <LayoutCard 
       className="result-card"
@@ -17,8 +25,8 @@ function TargetAudience({ targetAudiences, thresholds }) {
       }
     >
       <div id="targetAudienceDisplay" className="landscape-content">
-        {targetAudiences.length > 0 ? (
-          targetAudiences.map(d => {
+        {sortedAudiences.length > 0 ? (
+          sortedAudiences.map(d => {
             const tierClass = d.score >= thresholds.THRESHOLD_GOOD ? 'pill-best' : 'pill-moderate';
             return (
               <div key={d.id} className={`audience-pill ${tierClass}`}>

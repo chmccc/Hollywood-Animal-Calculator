@@ -75,7 +75,7 @@ function FreshnessMeter({ count, status }) {
  * @param {boolean} showFreshness - Whether to show the freshness meter on cards
  */
 function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas = {}, showDeltas = false, renderCategoryExtra = null, optionalCategories = [], maxOptionalTags = 10, showFreshness = false }) {
-  const { categories, getTagsByCategory, tags, codexBannedTags, tagFreshness, showAdvancedDeltas } = useApp();
+  const { categories, getTagsByCategory, tags, codexBannedTags, tagFreshness, showBonusEffects, showAudienceEffects } = useApp();
   
   // Track which categories are expanded (all start collapsed)
   const [expandedCategories, setExpandedCategories] = useState(() => 
@@ -172,6 +172,7 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                 const synergyDelta = deltas?.synergyDelta;
                 const comBonusDelta = deltas?.comBonusDelta;
                 const artBonusDelta = deltas?.artBonusDelta;
+                const audienceChanges = deltas?.audienceChanges || {};
 
                 // Determine outline class based on combined deltas
                 // Green: at least one positive AND neither negative
@@ -218,10 +219,13 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                 const comBonusStr = formatCompactBonus('CB', comBonusDelta) || 'CB-';
                 const artBonusStr = formatCompactBonus('AB', artBonusDelta) || 'AB-';
 
+                // Determine if we need advanced card size (either bonus or audience effects)
+                const hasAdvancedContent = showBonusEffects || showAudienceEffects;
+
                 return (
                   <button
                     key={tag.id}
-                    className={`tag-browser-card ${categoryClass} ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${showDeltas && showAdvancedDeltas ? 'has-advanced-deltas' : ''} ${showFreshnessForTag ? 'has-freshness' : ''} ${isTagDisabled ? 'tag-disabled' : ''} ${isBanned ? 'tag-banned' : ''} ${showSwapIcon ? 'can-swap' : ''}`.trim()}
+                    className={`tag-browser-card ${categoryClass} ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${showDeltas && hasAdvancedContent ? 'has-advanced-deltas' : ''} ${showFreshnessForTag ? 'has-freshness' : ''} ${isTagDisabled ? 'tag-disabled' : ''} ${isBanned ? 'tag-banned' : ''} ${showSwapIcon ? 'can-swap' : ''}`.trim()}
                     onClick={() => !isTagDisabled && handleCardClick(tag.id, category)}
                     type="button"
                     disabled={isTagDisabled}
@@ -229,34 +233,73 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                     {showSwapIcon && <span className="swap-overlay">↻</span>}
                     {isBanned && <span className="banned-overlay">BANNED</span>}
                     <span className="tag-name">{tag.name}</span>
+                    
                     {showDeltas && (
-                      <span className="tag-deltas">
-                        <span className={`tag-delta ${getDeltaClass(artDelta)}`}>
-                          A: {formatDelta(artDelta)}
-                        </span>
-                        <span className={`tag-delta ${getDeltaClass(comDelta)}`}>
-                          C: {formatDelta(comDelta)}
-                        </span>
-                      </span>
-                    )}
-                    {showDeltas && showAdvancedDeltas && (
-                      <span className="tag-deltas-secondary">
-                        <span className={`tag-delta-mini ${getBonusDeltaClass(synergyDelta)}`}>
-                          SB: {formatCompactBonus('', synergyDelta) || '-'}
-                        </span>
-                        <span className="tag-delta-separator">|</span>
-                        <span className="tag-delta-mini-group">
-                          <span className={`tag-delta-mini ${getBonusDeltaClass(comBonusDelta)}`}>
-                            {comBonusStr}
+                      <span className="tag-content">
+                        {freshnessInfo && (
+                          <FreshnessMeter count={freshnessInfo.count} status={freshnessInfo.status} />
+                        )}
+                        <span className="tag-scores-primary">
+                          <span className={`tag-delta ${getDeltaClass(artDelta)}`}>
+                            A: {formatDelta(artDelta)}
                           </span>
-                          <span className={`tag-delta-mini ${getBonusDeltaClass(artBonusDelta)}`}>
-                            {artBonusStr}
+                          <span className={`tag-delta ${getDeltaClass(comDelta)}`}>
+                            C: {formatDelta(comDelta)}
                           </span>
                         </span>
+                        
+                        {showBonusEffects && (
+                          <span className="tag-scores-breakdown">
+                            <span className={`tag-delta-mini ${getBonusDeltaClass(synergyDelta)}`}>
+                              SB: {formatCompactBonus('', synergyDelta) || '-'}
+                            </span>
+                            <span className="tag-delta-separator">|</span>
+                            <span className={`tag-delta-mini ${getBonusDeltaClass(comBonusDelta)}`}>
+                              {comBonusStr}
+                            </span>
+                            <span className={`tag-delta-mini ${getBonusDeltaClass(artBonusDelta)}`}>
+                              {artBonusStr}
+                            </span>
+                          </span>
+                        )}
+                        
+                        {showAudienceEffects && (
+                          <span className="tag-audience">
+                            <span className="tag-audience-row">
+                              {['TM', 'YM', 'AM'].map(demoId => {
+                                const change = audienceChanges[demoId];
+                                const badgeClass = change === 'up' ? 'audience-up' : change === 'down' ? 'audience-down' : 'audience-neutral';
+                                const symbol = change === 'up' ? '+' : change === 'down' ? '-' : '';
+                                const label = demoId === 'TM' ? 'B' : demoId;
+                                return (
+                                  <span 
+                                    key={demoId} 
+                                    className={`audience-badge ${badgeClass}`}
+                                  >
+                                    {label}{symbol}
+                                  </span>
+                                );
+                              })}
+                            </span>
+                            <span className="tag-audience-row">
+                              {['TF', 'YF', 'AF'].map(demoId => {
+                                const change = audienceChanges[demoId];
+                                const badgeClass = change === 'up' ? 'audience-up' : change === 'down' ? 'audience-down' : 'audience-neutral';
+                                const symbol = change === 'up' ? '+' : change === 'down' ? '-' : '';
+                                const label = demoId === 'TF' ? 'G' : demoId;
+                                return (
+                                  <span 
+                                    key={demoId} 
+                                    className={`audience-badge ${badgeClass}`}
+                                  >
+                                    {label}{symbol}
+                                  </span>
+                                );
+                              })}
+                            </span>
+                          </span>
+                        )}
                       </span>
-                    )}
-                    {freshnessInfo && (
-                      <FreshnessMeter count={freshnessInfo.count} status={freshnessInfo.status} />
                     )}
                   </button>
                 );
