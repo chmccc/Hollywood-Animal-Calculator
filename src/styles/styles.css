@@ -1913,13 +1913,13 @@ input[type="text"]::placeholder {
     box-sizing: border-box;
 }
 
-.audience-badge.audience-up {
+.audience-badge.audience-high {
     background: rgba(45, 122, 58, 0.2);
     color: #2d7a3a;
     border: 1px solid rgba(45, 122, 58, 0.4);
 }
 
-.audience-badge.audience-down {
+.audience-badge.audience-low {
     background: rgba(170, 51, 51, 0.2);
     color: #a33;
     border: 1px solid rgba(170, 51, 51, 0.4);

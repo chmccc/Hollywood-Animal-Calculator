@@ -1,5 +1,7 @@
 // Tag helper utilities
 
+import { MULTI_SELECT_CATEGORIES } from '../data/gameData';
+
 // Demographics IDs for audience calculation
 const DEMO_IDS = ['YM', 'YF', 'TM', 'TF', 'AM', 'AF'];
 const THRESHOLD_HIGH = 0.67;
@@ -158,11 +160,24 @@ export function calculateScoreDeltas(
       continue;
     }
     
-    // Create a hypothetical selection with this tag added
-    const hypotheticalTags = [
-      ...currentTagInputs,
-      { id: tagId, percent: 1.0, category: tagData.category }
-    ];
+    // Create a hypothetical selection with this tag added/swapped
+    // For single-select categories, we need to REPLACE the existing tag, not add to it
+    const isSingleSelect = !MULTI_SELECT_CATEGORIES.includes(tagData.category);
+    
+    let hypotheticalTags;
+    if (isSingleSelect) {
+      // Filter out any existing tag in the same category, then add the new one
+      hypotheticalTags = [
+        ...currentTagInputs.filter(t => t.category !== tagData.category),
+        { id: tagId, percent: 1.0, category: tagData.category }
+      ];
+    } else {
+      // Multi-select: just add the tag
+      hypotheticalTags = [
+        ...currentTagInputs,
+        { id: tagId, percent: 1.0, category: tagData.category }
+      ];
+    }
     
     // Calculate what the scores would be
     const result = calculateSynergy(hypotheticalTags);

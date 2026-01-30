@@ -37,6 +37,15 @@ function getBonusDeltaClass(value) {
   return rounded > 0 ? 'delta-positive' : 'delta-negative';
 }
 
+// Get CSS class for audience weight (intrinsic tag appeal)
+// High (>=4): green, Low (<=0): red, Neutral (1-3): grey
+function getAudienceWeightClass(weight) {
+  const value = parseFloat(weight) || 0;
+  if (value >= 4) return 'audience-high';
+  if (value <= 0) return 'audience-low';
+  return 'audience-neutral';
+}
+
 /**
  * FreshnessMeter - Displays staleness as pips (0-6+)
  * Lower = fresher (green), higher = staler (orange/red)
@@ -172,7 +181,6 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                 const synergyDelta = deltas?.synergyDelta;
                 const comBonusDelta = deltas?.comBonusDelta;
                 const artBonusDelta = deltas?.artBonusDelta;
-                const audienceChanges = deltas?.audienceChanges || {};
 
                 // Determine outline class based on combined deltas
                 // Green: at least one positive AND neither negative
@@ -267,32 +275,30 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                           <span className="tag-audience">
                             <span className="tag-audience-row">
                               {['TM', 'YM', 'AM'].map(demoId => {
-                                const change = audienceChanges[demoId];
-                                const badgeClass = change === 'up' ? 'audience-up' : change === 'down' ? 'audience-down' : 'audience-neutral';
-                                const symbol = change === 'up' ? '+' : change === 'down' ? '-' : '';
+                                const weight = tag.weights?.[demoId] || 0;
+                                const badgeClass = getAudienceWeightClass(weight);
                                 const label = demoId === 'TM' ? 'B' : demoId;
                                 return (
                                   <span 
                                     key={demoId} 
                                     className={`audience-badge ${badgeClass}`}
                                   >
-                                    {label}{symbol}
+                                    {label}
                                   </span>
                                 );
                               })}
                             </span>
                             <span className="tag-audience-row">
                               {['TF', 'YF', 'AF'].map(demoId => {
-                                const change = audienceChanges[demoId];
-                                const badgeClass = change === 'up' ? 'audience-up' : change === 'down' ? 'audience-down' : 'audience-neutral';
-                                const symbol = change === 'up' ? '+' : change === 'down' ? '-' : '';
+                                const weight = tag.weights?.[demoId] || 0;
+                                const badgeClass = getAudienceWeightClass(weight);
                                 const label = demoId === 'TF' ? 'G' : demoId;
                                 return (
                                   <span 
                                     key={demoId} 
                                     className={`audience-badge ${badgeClass}`}
                                   >
-                                    {label}{symbol}
+                                    {label}
                                   </span>
                                 );
                               })}
