@@ -179,7 +179,7 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
 
                 // Determine outline class based on combined deltas
                 // Green: at least one positive AND neither negative
-                // Red: at least one negative AND neither positive
+                // Red: at least one negative (even if there's also a positive)
                 let outlineClass = '';
                 if (!isSelected && deltas) {
                   const artPositive = artDelta >= 0.05;
@@ -190,12 +190,13 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                   const hasPositive = artPositive || comPositive;
                   const hasNegative = artNegative || comNegative;
                   
-                  if (hasPositive && !hasNegative) {
-                    outlineClass = 'tag-both-positive';
-                  } else if (hasNegative && !hasPositive) {
+                  if (hasNegative) {
+                    // Any negative = red border (even if mixed with positive)
                     outlineClass = 'tag-both-negative';
+                  } else if (hasPositive) {
+                    // Only positive, no negative = green border
+                    outlineClass = 'tag-both-positive';
                   }
-                  // Mixed signals (one positive, one negative) or both neutral = no border
                 }
 
                 // Disable if category is disabled (at max, can't swap) and tag is not selected
