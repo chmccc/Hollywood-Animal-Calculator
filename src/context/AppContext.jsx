@@ -19,6 +19,7 @@ const STORAGE_KEY_INCLUDE_UNRELEASED = 'freshnessIncludeUnreleased';
 const STORAGE_KEY_FILE_TIMESTAMP = 'saveFileTimestamp';
 const STORAGE_KEY_SHOW_BONUS_EFFECTS = 'showBonusEffects';
 const STORAGE_KEY_SHOW_AUDIENCE_EFFECTS = 'showAudienceEffects';
+const STORAGE_KEY_ENLARGE_CARD_FONTS = 'enlargeCardFonts';
 
 // Helper function to beautify tag names
 function beautifyTagName(rawId, localizationMap = {}) {
@@ -154,6 +155,16 @@ export function AppProvider({ children }) {
   const [showAudienceEffects, setShowAudienceEffects] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_SHOW_AUDIENCE_EFFECTS);
+      return saved === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  // Setting: enlarge card fonts (+30%)
+  const [enlargeCardFonts, setEnlargeCardFonts] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_ENLARGE_CARD_FONTS);
       return saved === 'true';
     } catch (e) {
       return false;
@@ -416,6 +427,19 @@ export function AppProvider({ children }) {
     });
   }, []);
 
+  // Toggle enlarge card fonts
+  const toggleEnlargeCardFonts = useCallback(() => {
+    setEnlargeCardFonts(prev => {
+      const newVal = !prev;
+      try {
+        localStorage.setItem(STORAGE_KEY_ENLARGE_CARD_FONTS, String(newVal));
+      } catch (e) {
+        console.error('Failed to save setting:', e);
+      }
+      return newVal;
+    });
+  }, []);
+
   // Computed: tag freshness map (recalculates when data or setting changes)
   const tagFreshness = useMemo(() => {
     if (!freshnessData) return null;
@@ -488,6 +512,8 @@ export function AppProvider({ children }) {
     toggleBonusEffects,
     showAudienceEffects,
     toggleAudienceEffects,
+    enlargeCardFonts,
+    toggleEnlargeCardFonts,
     // Save directory watcher
     saveWatcher,
     isFileSystemAccessSupported: isFileSystemAccessSupported(),

@@ -84,7 +84,7 @@ function FreshnessMeter({ count, status }) {
  * @param {boolean} showFreshness - Whether to show the freshness meter on cards
  */
 function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas = {}, showDeltas = false, renderCategoryExtra = null, optionalCategories = [], maxOptionalTags = 10, showFreshness = false }) {
-  const { categories, getTagsByCategory, tags, codexBannedTags, tagFreshness, showBonusEffects, showAudienceEffects } = useApp();
+  const { categories, getTagsByCategory, tags, codexBannedTags, tagFreshness, showBonusEffects, showAudienceEffects, enlargeCardFonts } = useApp();
   
   // Track which categories are expanded (all start collapsed)
   const [expandedCategories, setExpandedCategories] = useState(() => 
@@ -125,12 +125,7 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
   const isAtMaxElements = optionalCategories.length > 0 && optionalTagCount >= maxOptionalTags;
 
   return (
-    <div className="tag-browser-container">
-      {isAtMaxElements && (
-        <div className="tag-browser-warning">
-          Maximum {maxOptionalTags} elements selected
-        </div>
-      )}
+    <div className={`tag-browser-container ${enlargeCardFonts ? 'large-fonts' : ''}`}>
       {categories.map(category => {
         const tagsInCategory = getTagsByCategory(category);
         
@@ -265,6 +260,7 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                             <span className={`tag-delta-mini ${getBonusDeltaClass(comBonusDelta)}`}>
                               {comBonusStr}
                             </span>
+                            <span className="tag-delta-separator">|</span>
                             <span className={`tag-delta-mini ${getBonusDeltaClass(artBonusDelta)}`}>
                               {artBonusStr}
                             </span>
@@ -315,6 +311,11 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
           </div>
         );
       })}
+      {isAtMaxElements && (
+        <div className="tag-browser-warning">
+          Maximum {maxOptionalTags} elements selected
+        </div>
+      )}
     </div>
   );
 }

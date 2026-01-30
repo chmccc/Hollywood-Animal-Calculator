@@ -2112,6 +2112,39 @@ input[type="text"]::placeholder {
     background: rgba(0, 0, 0, 0.1);
 }
 
+/* Large fonts mode - +30% font sizes and wider cards for tag browser */
+.tag-browser-container.large-fonts .tag-name {
+    font-size: 1.105rem;  /* 0.85 * 1.30 */
+}
+
+.tag-browser-container.large-fonts .tag-content {
+    font-size: 0.91rem;   /* 0.7 * 1.30 */
+}
+
+.tag-browser-container.large-fonts .tag-scores-breakdown {
+    font-size: 0.78rem;   /* 0.6 * 1.30 */
+}
+
+.tag-browser-container.large-fonts .tag-delta-mini {
+    font-size: 0.78rem;   /* 0.6 * 1.30 */
+}
+
+.tag-browser-container.large-fonts .audience-badge {
+    font-size: 0.715rem;  /* 0.55 * 1.30 */
+}
+
+/* Increase card width for large fonts - advanced deltas mode */
+.tag-browser-container.large-fonts .tag-browser-card.has-advanced-deltas {
+    width: 230px;
+    min-width: 230px;
+    max-width: 230px;
+}
+
+/* Increase padding for large fonts on all cards */
+.tag-browser-container.large-fonts .tag-browser-card {
+    padding: 12px 18px;
+}
+
 /* Freshness toggle row above tag browser (deprecated, use browser-toggles-row) */
 .freshness-toggle-row {
     display: flex;

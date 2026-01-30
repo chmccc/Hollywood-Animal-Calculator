@@ -59,7 +59,7 @@ function GenreSlider({ tagId, tagName, value, onChange }) {
 }
 
 function SynergyTab({ onTransferToAdvertisers = null }) {
-  const { categories, isLoading, tags, compatibility, maxTagSlots, ownedTagIds, tagFreshness, freshnessIncludeUnreleased, toggleFreshnessIncludeUnreleased, showBonusEffects, toggleBonusEffects, showAudienceEffects, toggleAudienceEffects } = useApp();
+  const { categories, isLoading, tags, compatibility, maxTagSlots, ownedTagIds, tagFreshness, freshnessIncludeUnreleased, toggleFreshnessIncludeUnreleased, showBonusEffects, toggleBonusEffects, showAudienceEffects, toggleAudienceEffects, enlargeCardFonts, toggleEnlargeCardFonts } = useApp();
   const { calculateSynergy } = useSynergyCalculation();
   const { analyzeMovie } = useAudienceAnalysis();
   const { pinScript } = useScriptGeneratorContext();
@@ -447,6 +447,17 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                       <span className="freshness-checkmark" />
                     </span>
                     <span>Audience effects</span>
+                  </label>
+                  <label className="freshness-toggle">
+                    <input
+                      type="checkbox"
+                      checked={enlargeCardFonts}
+                      onChange={toggleEnlargeCardFonts}
+                    />
+                    <span className="freshness-checkbox">
+                      <span className="freshness-checkmark" />
+                    </span>
+                    <span>Larger fonts</span>
                   </label>
                 </div>
                 <TagBrowser
