@@ -172,6 +172,7 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
             title="Build Your Script"
             subtitle="Select tags manually or use the search bar above. Add multiple genres to adjust their influence."
             headerActions={<Button size="sm" variant="primary" onClick={handleReset} title="Reset" />}
+            defaultCollapsed={true}
           >
             <div id="selectors-container-advertisers">
               {categories.map(category => (
@@ -206,21 +207,19 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
         <div className="split-layout-right">
           {results ? (
             <div id="results-advertisers" className="results-container">
+              <AdvertiserResults
+                validAgents={results.validAgents}
+                movieLean={results.movieLean}
+                leanText={results.leanText}
+                hasTargetAudience={results.targetAudiences.length > 0}
+              />
+              
               <TargetAudience
                 targetAudiences={results.targetAudiences}
                 thresholds={results.thresholds}
               />
               
-              <HolidayList viableHolidays={results.viableHolidays} />
-              
               <div className="results-row">
-                <AdvertiserResults
-                  validAgents={results.validAgents}
-                  movieLean={results.movieLean}
-                  leanText={results.leanText}
-                  hasTargetAudience={results.targetAudiences.length > 0}
-                />
-                
                 <LayoutCard 
                   className="result-card strategy-card"
                   title="Advertisement Duration"
@@ -249,6 +248,8 @@ function AdvertisersTab({ initialTags = null, initialGenrePercents = null }) {
                     </div>
                   </div>
                 </LayoutCard>
+                
+                <HolidayList viableHolidays={results.viableHolidays} />
               </div>
             </div>
           ) : (

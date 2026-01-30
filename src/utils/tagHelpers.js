@@ -34,26 +34,29 @@ export function searchTags(searchIndex, query) {
 
 /**
  * Calculate score deltas for all tags by simulating what would happen if each tag were added.
- * Returns art and commercial score deltas for each unselected tag.
+ * Returns art/commercial score deltas plus synergy and bonus breakdowns for each unselected tag.
  * 
  * @param {Array} currentTagInputs - Current selected tags in calculation format [{id, percent, category}]
  * @param {Object} allTags - All available tags from context
- * @param {Object} compatibility - Compatibility data
- * @param {Object} genrePairs - Genre pair data
- * @param {number} baselineArt - Current art score
- * @param {number} baselineCom - Current commercial score
+ * @param {Object} baseline - Baseline calculation result with displayArt, displayCom, totalScore, bonuses
  * @param {function} calculateSynergy - The synergy calculation function
- * @returns {Object} Map of tagId -> { artDelta: number, comDelta: number }
+ * @returns {Object} Map of tagId -> { artDelta, comDelta, synergyDelta, comBonusDelta, artBonusDelta }
  */
 export function calculateScoreDeltas(
   currentTagInputs,
   allTags,
-  baselineArt,
-  baselineCom,
+  baseline,
   calculateSynergy
 ) {
   const deltas = {};
   const selectedIds = new Set(currentTagInputs.map(t => t.id));
+  
+  // Extract baseline values
+  const baselineArt = baseline?.displayArt ?? 0;
+  const baselineCom = baseline?.displayCom ?? 0;
+  const baselineSynergy = baseline?.totalScore ?? 0;
+  const baselineComBonus = baseline?.bonuses?.com ?? 0;
+  const baselineArtBonus = baseline?.bonuses?.art ?? 0;
   
   for (const tagId of Object.keys(allTags)) {
     // Skip tags that are already selected
@@ -64,7 +67,7 @@ export function calculateScoreDeltas(
     
     const tagData = allTags[tagId];
     if (!tagData) {
-      deltas[tagId] = { artDelta: 0, comDelta: 0 };
+      deltas[tagId] = { artDelta: 0, comDelta: 0, synergyDelta: 0, comBonusDelta: 0, artBonusDelta: 0 };
       continue;
     }
     
@@ -78,15 +81,20 @@ export function calculateScoreDeltas(
     const result = calculateSynergy(hypotheticalTags);
     
     if (!result) {
-      deltas[tagId] = { artDelta: 0, comDelta: 0 };
+      deltas[tagId] = { artDelta: 0, comDelta: 0, synergyDelta: 0, comBonusDelta: 0, artBonusDelta: 0 };
       continue;
     }
     
-    // Calculate deltas
+    // Calculate deltas for final scores
     const artDelta = result.displayArt - baselineArt;
     const comDelta = result.displayCom - baselineCom;
     
-    deltas[tagId] = { artDelta, comDelta };
+    // Calculate deltas for breakdown values
+    const synergyDelta = result.totalScore - baselineSynergy;
+    const comBonusDelta = (result.bonuses?.com ?? 0) - baselineComBonus;
+    const artBonusDelta = (result.bonuses?.art ?? 0) - baselineArtBonus;
+    
+    deltas[tagId] = { artDelta, comDelta, synergyDelta, comBonusDelta, artBonusDelta };
   }
   
   return deltas;

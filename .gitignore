@@ -32,4 +32,6 @@ Thumbs.db
 # Cache
 .cache/
 .eslintcache
-src/save.json
+
+# Local save analysis scripts and data
+saves/

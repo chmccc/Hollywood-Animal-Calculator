@@ -59,7 +59,7 @@ function GenreSlider({ tagId, tagName, value, onChange }) {
 }
 
 function SynergyTab({ onTransferToAdvertisers = null }) {
-  const { categories, isLoading, tags, compatibility, maxTagSlots, ownedTagIds, tagFreshness, freshnessIncludeUnreleased, toggleFreshnessIncludeUnreleased } = useApp();
+  const { categories, isLoading, tags, compatibility, maxTagSlots, ownedTagIds, tagFreshness, freshnessIncludeUnreleased, toggleFreshnessIncludeUnreleased, showAdvancedDeltas, toggleAdvancedDeltas } = useApp();
   const { calculateSynergy } = useSynergyCalculation();
   const { analyzeMovie } = useAudienceAnalysis();
   const { pinScript } = useScriptGeneratorContext();
@@ -98,17 +98,14 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
       return {};
     }
     
-    // Calculate baseline scores
+    // Calculate baseline scores (includes totalScore, bonuses, displayArt, displayCom)
     const baselineResult = calculateSynergy(currentInputs);
-    const baselineArt = baselineResult?.displayArt ?? 0;
-    const baselineCom = baselineResult?.displayCom ?? 0;
     
-    // Calculate deltas for all tags
+    // Calculate deltas for all tags, passing full baseline for breakdown deltas
     return calculateScoreDeltas(
       currentInputs,
       tags,
-      baselineArt,
-      baselineCom,
+      baselineResult,
       calculateSynergy
     );
   }, [selectedTags, genrePercents, tags, calculateSynergy]);
@@ -415,8 +412,8 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
               </div>
             ) : (
               <>
-                {tagFreshness && (
-                  <div className="freshness-toggle-row">
+                <div className="browser-toggles-row">
+                  {tagFreshness && (
                     <label className="freshness-toggle">
                       <input
                         type="checkbox"
@@ -426,10 +423,21 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
                       <span className="freshness-checkbox">
                         <span className="freshness-checkmark" />
                       </span>
-                      <span>Include unreleased films in staleness</span>
+                      <span>Include upcoming films in staleness</span>
                     </label>
-                  </div>
-                )}
+                  )}
+                  <label className="freshness-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showAdvancedDeltas}
+                      onChange={toggleAdvancedDeltas}
+                    />
+                    <span className="freshness-checkbox">
+                      <span className="freshness-checkmark" />
+                    </span>
+                    <span>Show bonus breakdown</span>
+                  </label>
+                </div>
                 <TagBrowser
                   selectedTagIds={selectedTagIds}
                   onToggle={handleTagToggle}

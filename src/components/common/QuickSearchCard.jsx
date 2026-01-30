@@ -14,6 +14,7 @@ function QuickSearchCard({ onSelect, placeholder = "Type to find a tag (e.g., 'A
       className="search-card"
       title="Quick Search"
       subtitle="Type to find tags by name or browse categories below."
+      defaultCollapsed={true}
     >
       <SearchBar
         onSelect={onSelect}

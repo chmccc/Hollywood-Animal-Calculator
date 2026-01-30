@@ -16,6 +16,7 @@
         0 4px 20px rgba(0, 0, 0, 0.4),
         inset 0 1px 0 rgba(212, 175, 55, 0.08);
     overflow: visible;
+    container-type: inline-size;
 }
 
 /* Accent border variants */
@@ -180,6 +181,17 @@
 
 .header-flourish.flip {
     transform: scaleX(-1);
+}
+
+/* Hide flourishes on narrow cards */
+@container (max-width: 500px) {
+    .header-flourish {
+        display: none;
+    }
+    
+    .layout-card-header {
+        justify-content: center;
+    }
 }
 
 /* ========================================= */

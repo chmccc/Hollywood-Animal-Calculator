@@ -1778,7 +1778,9 @@ input[type="text"]::placeholder {
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    min-width: 120px;
+    width: 148px;  /* Fixed width to prevent layout shift */
+    min-width: 148px;
+    max-width: 148px;
     padding: 10px 14px 8px;
 }
 
@@ -1817,13 +1819,64 @@ input[type="text"]::placeholder {
     color: #7a6b55;
 }
 
-/* Outline when both deltas are positive - vintage green */
-/* Outline when both deltas are positive - green border appears */
+/* Advanced deltas mode - wider fixed width for secondary row */
+.tag-browser-card.has-advanced-deltas {
+    width: 170px;  /* Fixed width to prevent layout shift */
+    min-width: 170px;
+    max-width: 170px;
+    padding-bottom: 6px;
+}
+
+/* Secondary delta row (synergy + bonus breakdown) */
+.tag-deltas-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 0.6rem;
+    font-weight: 500;
+    width: 100%;
+    padding-top: 2px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.08);
+    color: #6b5a48;
+}
+
+.tag-delta-mini {
+    font-family: 'Lato', sans-serif;
+    font-weight: 600;
+    font-size: 0.6rem;
+    min-width: 38px;  /* Fixed width to prevent layout shift */
+    text-align: center;
+}
+
+.tag-delta-mini.delta-positive {
+    color: #2d7a3a;
+}
+
+.tag-delta-mini.delta-negative {
+    color: #a33;
+}
+
+.tag-delta-mini.delta-neutral {
+    color: #7a6b55;
+}
+
+.tag-delta-separator {
+    color: rgba(0, 0, 0, 0.25);
+    font-weight: 300;
+}
+
+.tag-delta-mini-group {
+    display: flex;
+    gap: 4px;
+}
+
+/* Outline when at least one positive and none negative - green border */
 .tag-browser-card.tag-both-positive {
     border-color: #4a9e4a;
 }
 
-/* Outline when both deltas are negative - red border appears */
+/* Outline when at least one negative and none positive - red border */
 .tag-browser-card.tag-both-negative {
     border-color: #b35555;
 }
@@ -1877,6 +1930,35 @@ input[type="text"]::placeholder {
 .tag-browser-card.tag-banned:hover::after,
 .tag-browser-card.tag-banned:hover .banned-overlay {
     opacity: 0;
+}
+
+/* Swap overlay for single-select categories */
+.swap-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 900;
+    color: rgba(58, 58, 58, 0.25);
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    z-index: 5;
+    /* Make the arrow extra thick using text-stroke */
+    -webkit-text-stroke: 2px rgba(58, 58, 58, 0.25);
+    text-shadow: 
+        0 0 2px rgba(58, 58, 58, 0.25),
+        1px 1px 0 rgba(58, 58, 58, 0.25),
+        -1px -1px 0 rgba(58, 58, 58, 0.25);
+}
+
+/* Show swap overlay on hover */
+.tag-browser-card.can-swap:hover .swap-overlay {
+    opacity: 1;
 }
 
 /* Disabled category header indicator */
@@ -1973,11 +2055,25 @@ input[type="text"]::placeholder {
     background: rgba(0, 0, 0, 0.1);
 }
 
-/* Freshness toggle row above tag browser */
+/* Freshness toggle row above tag browser (deprecated, use browser-toggles-row) */
 .freshness-toggle-row {
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, rgba(90, 70, 50, 0.3) 0%, rgba(60, 45, 30, 0.4) 100%);
+    border-radius: var(--radius);
+    border: 1px solid rgba(180, 140, 60, 0.3);
+}
+
+/* Browser toggles row - container for multiple toggle options */
+.browser-toggles-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
     margin-bottom: 10px;
     padding: 8px 12px;
     background: linear-gradient(135deg, rgba(90, 70, 50, 0.3) 0%, rgba(60, 45, 30, 0.4) 100%);
@@ -2226,25 +2322,28 @@ input[type="text"]::placeholder {
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 20px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .modal-description {
     color: var(--text-muted);
     font-size: 0.9rem;
-    margin-bottom: 20px;
     line-height: 1.5;
+    margin: 0;
 }
 
 .modal-path-hint {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    padding: 12px;
-    margin-bottom: 20px;
+    padding: 0 12px 0 0;
     font-size: 0.85rem;
     color: var(--text-muted);
     line-height: 1.6;
+    margin: 0;
 }
 
 .modal-path-hint code {
@@ -2265,7 +2364,6 @@ input[type="text"]::placeholder {
     color: var(--danger);
     padding: 12px;
     border-radius: 4px;
-    margin-bottom: 20px;
     font-size: 0.9rem;
 }
 
@@ -2275,28 +2373,24 @@ input[type="text"]::placeholder {
     color: var(--text-muted);
     padding: 10px 12px;
     border-radius: 4px;
-    margin-bottom: 15px;
     font-size: 0.85rem;
+    margin: 0;
 }
 
 .modal-warning strong {
     color: var(--accent);
 }
 
-.import-option {
-    margin-bottom: 20px;
-}
-
-.import-option h4 {
+.import-option-title {
     color: var(--text-main);
     font-size: 0.95rem;
-    margin: 0 0 8px 0;
+    margin: 0;
 }
 
-.import-option p {
+.import-option-desc {
     color: var(--text-muted);
     font-size: 0.85rem;
-    margin: 0 0 12px 0;
+    margin: 0;
 }
 
 /* Legacy .import-btn removed - using Button component */
@@ -2304,7 +2398,6 @@ input[type="text"]::placeholder {
 .import-divider {
     display: flex;
     align-items: center;
-    margin: 20px 0;
     color: var(--text-muted);
     font-size: 0.8rem;
     text-transform: uppercase;
@@ -2323,41 +2416,9 @@ input[type="text"]::placeholder {
     padding: 0 15px;
 }
 
-.paste-textarea {
-    width: 100%;
-    min-height: 120px;
-    background: var(--input-bg);
-    border: 2px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text-main);
-    font-family: 'Inter', monospace;
-    font-size: 0.85rem;
-    padding: 12px;
-    resize: vertical;
-    margin-bottom: 12px;
-    transition: border-color 0.2s;
-}
-
-.paste-textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
-}
-
-.paste-textarea::placeholder {
-    color: var(--text-main);
-    opacity: 0.6;
-}
-
 /* ========================================= */
 /* --- SAVE WATCHER STYLES --- */
 /* ========================================= */
-
-.watch-folder-option .browser-note {
-    margin-top: 12px;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-}
 
 .watch-status {
     background: rgba(76, 217, 100, 0.08);

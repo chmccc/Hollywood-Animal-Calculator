@@ -12,11 +12,28 @@ function formatDelta(value) {
   return rounded > 0 ? `+${rounded.toFixed(1)}` : rounded.toFixed(1);
 }
 
+// Format compact bonus delta (e.g., "C+0.1" or "A-0.2")
+function formatCompactBonus(prefix, value) {
+  if (value === null || value === undefined) return null;
+  const rounded = Math.round(value * 100) / 100; // 2 decimal places for raw bonus
+  if (Math.abs(rounded) < 0.005) return null;
+  const sign = rounded > 0 ? '+' : '';
+  return `${prefix}${sign}${rounded.toFixed(2)}`;
+}
+
 // Get CSS class for delta value
 function getDeltaClass(value) {
   if (value === null || value === undefined) return 'delta-neutral';
   const rounded = Math.round(value * 10) / 10;
   if (Math.abs(rounded) < 0.05) return 'delta-neutral';
+  return rounded > 0 ? 'delta-positive' : 'delta-negative';
+}
+
+// Get CSS class for raw bonus values (smaller threshold)
+function getBonusDeltaClass(value) {
+  if (value === null || value === undefined) return 'delta-neutral';
+  const rounded = Math.round(value * 100) / 100;
+  if (Math.abs(rounded) < 0.005) return 'delta-neutral';
   return rounded > 0 ? 'delta-positive' : 'delta-negative';
 }
 
@@ -58,7 +75,7 @@ function FreshnessMeter({ count, status }) {
  * @param {boolean} showFreshness - Whether to show the freshness meter on cards
  */
 function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas = {}, showDeltas = false, renderCategoryExtra = null, optionalCategories = [], maxOptionalTags = 10, showFreshness = false }) {
-  const { categories, getTagsByCategory, tags, codexBannedTags, tagFreshness } = useApp();
+  const { categories, getTagsByCategory, tags, codexBannedTags, tagFreshness, showAdvancedDeltas } = useApp();
   
   // Track which categories are expanded (all start collapsed)
   const [expandedCategories, setExpandedCategories] = useState(() => 
@@ -152,8 +169,13 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                 const deltas = scoreDeltas[tag.id];
                 const artDelta = deltas?.artDelta;
                 const comDelta = deltas?.comDelta;
+                const synergyDelta = deltas?.synergyDelta;
+                const comBonusDelta = deltas?.comBonusDelta;
+                const artBonusDelta = deltas?.artBonusDelta;
 
                 // Determine outline class based on combined deltas
+                // Green: at least one positive AND neither negative
+                // Red: at least one negative AND neither positive
                 let outlineClass = '';
                 if (!isSelected && deltas) {
                   const artPositive = artDelta >= 0.05;
@@ -161,11 +183,15 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                   const comPositive = comDelta >= 0.05;
                   const comNegative = comDelta <= -0.05;
                   
-                  if (artPositive && comPositive) {
+                  const hasPositive = artPositive || comPositive;
+                  const hasNegative = artNegative || comNegative;
+                  
+                  if (hasPositive && !hasNegative) {
                     outlineClass = 'tag-both-positive';
-                  } else if (artNegative && comNegative) {
+                  } else if (hasNegative && !hasPositive) {
                     outlineClass = 'tag-both-negative';
                   }
+                  // Mixed signals (one positive, one negative) or both neutral = no border
                 }
 
                 // Disable if category is disabled (at max, can't swap) and tag is not selected
@@ -185,14 +211,22 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                   ? getTagFreshnessInfo(tag.id, tagFreshness)
                   : null;
 
+                // Show swap icon on OTHER cards in single-select categories when one is already selected
+                const showSwapIcon = isSingleSelect && !isSelected && selectedCount > 0;
+
+                // Build bonus display for advanced mode (always show both)
+                const comBonusStr = formatCompactBonus('CB', comBonusDelta) || 'CB-';
+                const artBonusStr = formatCompactBonus('AB', artBonusDelta) || 'AB-';
+
                 return (
                   <button
                     key={tag.id}
-                    className={`tag-browser-card ${categoryClass} ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${showFreshnessForTag ? 'has-freshness' : ''} ${isTagDisabled ? 'tag-disabled' : ''} ${isBanned ? 'tag-banned' : ''}`.trim()}
+                    className={`tag-browser-card ${categoryClass} ${selectedClass} ${outlineClass} ${showDeltas ? 'has-deltas' : ''} ${showDeltas && showAdvancedDeltas ? 'has-advanced-deltas' : ''} ${showFreshnessForTag ? 'has-freshness' : ''} ${isTagDisabled ? 'tag-disabled' : ''} ${isBanned ? 'tag-banned' : ''} ${showSwapIcon ? 'can-swap' : ''}`.trim()}
                     onClick={() => !isTagDisabled && handleCardClick(tag.id, category)}
                     type="button"
                     disabled={isTagDisabled}
                   >
+                    {showSwapIcon && <span className="swap-overlay">↻</span>}
                     {isBanned && <span className="banned-overlay">BANNED</span>}
                     <span className="tag-name">{tag.name}</span>
                     {showDeltas && (
@@ -202,6 +236,22 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
                         </span>
                         <span className={`tag-delta ${getDeltaClass(comDelta)}`}>
                           C: {formatDelta(comDelta)}
+                        </span>
+                      </span>
+                    )}
+                    {showDeltas && showAdvancedDeltas && (
+                      <span className="tag-deltas-secondary">
+                        <span className={`tag-delta-mini ${getBonusDeltaClass(synergyDelta)}`}>
+                          SB: {formatCompactBonus('', synergyDelta) || '-'}
+                        </span>
+                        <span className="tag-delta-separator">|</span>
+                        <span className="tag-delta-mini-group">
+                          <span className={`tag-delta-mini ${getBonusDeltaClass(comBonusDelta)}`}>
+                            {comBonusStr}
+                          </span>
+                          <span className={`tag-delta-mini ${getBonusDeltaClass(artBonusDelta)}`}>
+                            {artBonusStr}
+                          </span>
                         </span>
                       </span>
                     )}
