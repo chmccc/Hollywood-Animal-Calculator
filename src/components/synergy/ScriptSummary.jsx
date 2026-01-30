@@ -30,13 +30,20 @@ function ScriptSummary({ selectedTags = [], genrePercents = {} }) {
     return null;
   }
 
+  // Helper to sort tags alphabetically by name
+  const sortByName = (tags) => [...tags].sort((a, b) => {
+    const nameA = tagData[a.id]?.name || a.id;
+    const nameB = tagData[b.id]?.name || b.id;
+    return nameA.localeCompare(nameB);
+  });
+
   // Pre-filter tags by category
-  const genres = selectedTags.filter(t => t.category === 'Genre' && t.id);
+  const genres = sortByName(selectedTags.filter(t => t.category === 'Genre' && t.id));
   const setting = selectedTags.find(t => t.category === 'Setting' && t.id);
   const protagonist = selectedTags.find(t => t.category === 'Protagonist' && t.id);
   const antagonist = selectedTags.find(t => t.category === 'Antagonist' && t.id);
-  const supporting = selectedTags.filter(t => t.category === 'Supporting Character' && t.id);
-  const themes = selectedTags.filter(t => t.category === 'Theme & Event' && t.id);
+  const supporting = sortByName(selectedTags.filter(t => t.category === 'Supporting Character' && t.id));
+  const themes = sortByName(selectedTags.filter(t => t.category === 'Theme & Event' && t.id));
   const finale = selectedTags.find(t => t.category === 'Finale' && t.id);
 
   return (
