@@ -534,6 +534,8 @@ function SynergyTab({ onTransferToAdvertisers = null }) {
               audienceData={audienceData}
               onTransfer={onTransferToAdvertisers ? handleTransfer : null}
               onPin={handlePinScript}
+              selectedTags={selectedTags}
+              genrePercents={genrePercents}
             />
           ) : (
             <div className="validation-placeholder">

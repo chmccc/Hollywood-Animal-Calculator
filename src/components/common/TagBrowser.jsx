@@ -141,10 +141,13 @@ function TagBrowser({ selectedTagIds, onToggle, variant = 'locked', scoreDeltas 
         const canSwapInCategory = isSingleSelect && selectedCount > 0;
         const isCategoryDisabled = isCategoryElement && isAtMaxElements && !canSwapInCategory;
 
+        // Category class for accordion header styling
+        const accordionCategoryClass = `cat-${category.toLowerCase().replace(/\s+&?\s*/g, '-')}`;
+
         return (
           <div key={category} className="tag-browser-section">
             <button
-              className={`tag-browser-accordion-header ${isExpanded ? 'expanded' : ''} ${isCategoryDisabled ? 'category-disabled' : ''}`}
+              className={`tag-browser-accordion-header ${accordionCategoryClass} ${isExpanded ? 'expanded' : ''} ${isCategoryDisabled ? 'category-disabled' : ''}`}
               onClick={() => toggleCategory(category)}
               type="button"
             >

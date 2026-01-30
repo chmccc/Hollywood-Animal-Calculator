@@ -2,8 +2,9 @@ import { formatScore, formatSimpleScore, formatFinalRating } from '../../utils/c
 import TargetAudience from '../advertisers/TargetAudience';
 import LayoutCard from '../common/LayoutCard';
 import Button from '../common/Button';
+import ScriptSummary from './ScriptSummary';
 
-function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = false }) {
+function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = false, selectedTags = [], genrePercents = {} }) {
   const {
     rawAverage,
     totalScore,
@@ -133,6 +134,11 @@ function SynergyResults({ results, audienceData, onTransfer, onPin, isPinned = f
           )}
         </div>
       </LayoutCard>
+
+      <ScriptSummary 
+        selectedTags={selectedTags} 
+        genrePercents={genrePercents} 
+      />
 
       {(onTransfer || onPin) && (
         <div className="action-area" style={{ marginTop: 0, display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>

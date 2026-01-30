@@ -21,6 +21,49 @@
     --moderate: #ff9f0a;
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     --radius: 2px; /* Art Deco uses subtle corners */
+    
+    /* Category Colors - Light (for light backgrounds/tag browser cards - darker for contrast) */
+    --cat-genre-light: #6b5040;
+    --cat-setting-light: #6b5040;
+    --cat-protagonist-light: #3a6a3a;
+    --cat-antagonist-light: #4a4a7a;
+    --cat-supporting-light: #3a5a7a;
+    --cat-theme-light: #7a4a4a;
+    --cat-finale-light: #7a4a5a;
+    
+    /* Category Colors - Dark (for dark backgrounds/summary cards - lighter for visibility) */
+    --cat-genre-dark: #f4e5d6;
+    --cat-setting-dark: #f4e5d6;
+    --cat-protagonist-dark: #d6f4d6;
+    --cat-antagonist-dark: #d6d6f4;
+    --cat-supporting-dark: #d6e8f4;
+    --cat-theme-dark: #f4dcdc;
+    --cat-finale-dark: #f4d6e5;
+    
+    /* Category Colors - Background (for dark theme chip backgrounds) */
+    --cat-genre-bg: rgba(80, 60, 40, 0.9);
+    --cat-genre-bg-dark: rgba(50, 40, 30, 0.95);
+    --cat-setting-bg: rgba(80, 60, 40, 0.9);
+    --cat-setting-bg-dark: rgba(50, 40, 30, 0.95);
+    --cat-protagonist-bg: rgba(40, 70, 40, 0.9);
+    --cat-protagonist-bg-dark: rgba(30, 50, 30, 0.95);
+    --cat-antagonist-bg: rgba(50, 45, 80, 0.9);
+    --cat-antagonist-bg-dark: rgba(35, 32, 60, 0.95);
+    --cat-supporting-bg: rgba(40, 55, 70, 0.9);
+    --cat-supporting-bg-dark: rgba(30, 40, 55, 0.95);
+    --cat-theme-bg: rgba(70, 45, 45, 0.9);
+    --cat-theme-bg-dark: rgba(50, 35, 35, 0.95);
+    --cat-finale-bg: rgba(75, 40, 55, 0.9);
+    --cat-finale-bg-dark: rgba(55, 30, 42, 0.95);
+    
+    /* Category Colors - Border (for dark theme chip borders) */
+    --cat-genre-border: rgba(160, 120, 80, 0.4);
+    --cat-setting-border: rgba(160, 120, 80, 0.4);
+    --cat-protagonist-border: rgba(80, 140, 80, 0.4);
+    --cat-antagonist-border: rgba(100, 90, 160, 0.4);
+    --cat-supporting-border: rgba(80, 120, 160, 0.4);
+    --cat-theme-border: rgba(140, 90, 90, 0.4);
+    --cat-finale-border: rgba(150, 80, 110, 0.4);
 }
 
 html {
@@ -1069,6 +1112,114 @@ input[type="text"]::placeholder {
     opacity: 0.8;
 }
 
+/* ========================================= */
+/* --- SCRIPT SUMMARY --- */
+/* ========================================= */
+
+.script-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.script-summary-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.script-summary-row:first-child {
+    padding-top: 0;
+}
+
+.script-summary-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.script-summary-label {
+    flex-shrink: 0;
+    width: 140px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    padding-top: 4px;
+}
+
+.script-summary-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1;
+}
+
+.script-summary-tag {
+    display: inline-block;
+    background: rgba(40, 40, 40, 0.95);
+    color: var(--text-main);
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Category-specific colors for summary tags (dark theme adapted) */
+.script-summary-tag.cat-genre {
+    color: var(--cat-genre-dark);
+    background: linear-gradient(135deg, var(--cat-genre-bg) 0%, var(--cat-genre-bg-dark) 100%);
+    border-color: var(--cat-genre-border);
+}
+
+.script-summary-tag.cat-setting {
+    color: var(--cat-setting-dark);
+    background: linear-gradient(135deg, var(--cat-setting-bg) 0%, var(--cat-setting-bg-dark) 100%);
+    border-color: var(--cat-setting-border);
+}
+
+.script-summary-tag.cat-protagonist {
+    color: var(--cat-protagonist-dark);
+    background: linear-gradient(135deg, var(--cat-protagonist-bg) 0%, var(--cat-protagonist-bg-dark) 100%);
+    border-color: var(--cat-protagonist-border);
+}
+
+.script-summary-tag.cat-antagonist {
+    color: var(--cat-antagonist-dark);
+    background: linear-gradient(135deg, var(--cat-antagonist-bg) 0%, var(--cat-antagonist-bg-dark) 100%);
+    border-color: var(--cat-antagonist-border);
+}
+
+.script-summary-tag.cat-supporting {
+    color: var(--cat-supporting-dark);
+    background: linear-gradient(135deg, var(--cat-supporting-bg) 0%, var(--cat-supporting-bg-dark) 100%);
+    border-color: var(--cat-supporting-border);
+}
+
+.script-summary-tag.cat-theme {
+    color: var(--cat-theme-dark);
+    background: linear-gradient(135deg, var(--cat-theme-bg) 0%, var(--cat-theme-bg-dark) 100%);
+    border-color: var(--cat-theme-border);
+}
+
+.script-summary-tag.cat-finale {
+    color: var(--cat-finale-dark);
+    background: linear-gradient(135deg, var(--cat-finale-bg) 0%, var(--cat-finale-bg-dark) 100%);
+    border-color: var(--cat-finale-border);
+}
+
+@media (max-width: 600px) {
+    .script-summary-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .script-summary-label {
+        width: auto;
+        padding-top: 0;
+    }
+}
+
 /* Audience Pills */
 .audience-legend {
     display: flex;
@@ -1538,6 +1689,32 @@ input[type="text"]::placeholder {
     font-weight: 700;
 }
 
+/* Category-specific colors for accordion titles */
+.tag-browser-accordion-header.cat-genre .accordion-title,
+.tag-browser-accordion-header.cat-setting .accordion-title {
+    color: var(--cat-genre-dark);
+}
+
+.tag-browser-accordion-header.cat-protagonist .accordion-title {
+    color: var(--cat-protagonist-dark);
+}
+
+.tag-browser-accordion-header.cat-antagonist .accordion-title {
+    color: var(--cat-antagonist-dark);
+}
+
+.tag-browser-accordion-header.cat-supporting-character .accordion-title {
+    color: var(--cat-supporting-dark);
+}
+
+.tag-browser-accordion-header.cat-theme-event .accordion-title {
+    color: var(--cat-theme-dark);
+}
+
+.tag-browser-accordion-header.cat-finale .accordion-title {
+    color: var(--cat-finale-dark);
+}
+
 .accordion-badge {
     background: var(--border);
     color: var(--text-main);
@@ -1666,37 +1843,37 @@ input[type="text"]::placeholder {
 
 /* Genre - warm brown (default) */
 .tag-browser-card.cat-genre {
-    color: #6b5040;
+    color: var(--cat-genre-light);
 }
 
 /* Setting - warm brown (same as genre) */
 .tag-browser-card.cat-setting {
-    color: #6b5040;
+    color: var(--cat-setting-light);
 }
 
 /* Protagonist - green */
 .tag-browser-card.cat-protagonist {
-    color: #3a6a3a;
+    color: var(--cat-protagonist-light);
 }
 
-/* Antagonist - violet/magenta */
+/* Antagonist - blue-purple */
 .tag-browser-card.cat-antagonist {
-    color: #6a3a6a;
+    color: var(--cat-antagonist-light);
 }
 
 /* Supporting Character - blue */
 .tag-browser-card.cat-supporting-character {
-    color: #3a5a7a;
+    color: var(--cat-supporting-light);
 }
 
 /* Theme & Event - reddish brown/maroon */
 .tag-browser-card.cat-theme-event {
-    color: #7a4a4a;
+    color: var(--cat-theme-light);
 }
 
-/* Finale - purple */
+/* Finale - red-magenta */
 .tag-browser-card.cat-finale {
-    color: #5a3a7a;
+    color: var(--cat-finale-light);
 }
 
 /* Selected for LOCKED - gold highlight */
