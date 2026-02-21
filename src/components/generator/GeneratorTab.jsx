@@ -12,7 +12,7 @@ import { collectTagInputs } from '../../utils/tagHelpers';
 const STALENESS_MAX_VALUE = 6; // Internal value representing "No Max"
 
 function GeneratorTab({ onTransferToAdvertisers = null }) {
-  const { categories, ownedTagIds, maxTagSlots, tagFreshness, codexBannedTags } = useApp();
+  const { categories, ownedTagIds, maxTagSlots, tagFreshness, codexBannedTags, freshnessIncludeUnreleased, toggleFreshnessIncludeUnreleased } = useApp();
   const {
     generatedScripts,
     pinnedScripts,
@@ -213,18 +213,35 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                 }
               />
             </div>
-            {codexBannedTags && codexBannedTags.size > 0 && (
-              <label className="freshness-toggle" style={{ marginTop: '10px' }}>
-                <input
-                  type="checkbox"
-                  checked={excludeBanned}
-                  onChange={() => setExcludeBanned(prev => !prev)}
-                />
-                <span className="freshness-checkbox">
-                  <span className="freshness-checkmark" />
-                </span>
-                <span>Exclude banned elements ({codexBannedTags.size})</span>
-              </label>
+            {(tagFreshness || (codexBannedTags && codexBannedTags.size > 0)) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: '10px' }}>
+                {codexBannedTags && codexBannedTags.size > 0 && (
+                  <label className="freshness-toggle">
+                    <input
+                      type="checkbox"
+                      checked={excludeBanned}
+                      onChange={() => setExcludeBanned(prev => !prev)}
+                    />
+                    <span className="freshness-checkbox">
+                      <span className="freshness-checkmark" />
+                    </span>
+                    <span>Exclude banned elements ({codexBannedTags.size})</span>
+                  </label>
+                )}
+                {tagFreshness && (
+                  <label className="freshness-toggle">
+                    <input
+                      type="checkbox"
+                      checked={freshnessIncludeUnreleased}
+                      onChange={toggleFreshnessIncludeUnreleased}
+                    />
+                    <span className="freshness-checkbox">
+                      <span className="freshness-checkmark" />
+                    </span>
+                    <span>Include upcoming films in staleness</span>
+                  </label>
+                )}
+              </div>
             )}
           </LayoutCard>
 
