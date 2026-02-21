@@ -9,8 +9,10 @@ import TagBrowser from '../common/TagBrowser';
 import ScriptCard from './ScriptCard';
 import { collectTagInputs } from '../../utils/tagHelpers';
 
+const STALENESS_MAX_VALUE = 6; // Internal value representing "No Max"
+
 function GeneratorTab({ onTransferToAdvertisers = null }) {
-  const { categories, ownedTagIds, maxTagSlots } = useApp();
+  const { categories, ownedTagIds, maxTagSlots, tagFreshness, codexBannedTags } = useApp();
   const {
     generatedScripts,
     pinnedScripts,
@@ -24,6 +26,8 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
   const [excludedTags, setExcludedTags] = useState([]);
   const [genrePercents, setGenrePercents] = useState({});
   const [excludedInputMode, setExcludedInputMode] = useState('browser'); // 'dropdown' | 'browser'
+  const [maxStaleness, setMaxStaleness] = useState(STALENESS_MAX_VALUE);
+  const [excludeBanned, setExcludeBanned] = useState(true);
 
   // Load exclusions from localStorage on mount
   useEffect(() => {
@@ -40,11 +44,6 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     }
   }, []);
 
-  // Memoized sets for TagBrowser
-  const lockedTagIds = useMemo(() => 
-    new Set(lockedTags.filter(t => t.id).map(t => t.id)), 
-    [lockedTags]
-  );
   const excludedTagIds = useMemo(() => 
     new Set(excludedTags.filter(t => t.id).map(t => t.id)), 
     [excludedTags]
@@ -59,12 +58,20 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
       lockedTags.filter(t => t.id),
       genrePercents
     );
-    const excluded = collectTagInputs(
-      excludedTags.filter(t => t.id),
-      {}
-    );
 
-    const result = generateScripts(targetComp, targetScore, fixedTags, excluded);
+    let allExcluded = excludedTags.filter(t => t.id);
+    if (excludeBanned && codexBannedTags && codexBannedTags.size > 0) {
+      const alreadyExcluded = new Set(allExcluded.map(t => t.id));
+      codexBannedTags.forEach(id => {
+        if (!alreadyExcluded.has(id)) {
+          allExcluded.push({ id, percent: 1.0, category: 'Unknown' });
+        }
+      });
+    }
+
+    const excluded = collectTagInputs(allExcluded, {});
+    const stalenessLimit = maxStaleness < STALENESS_MAX_VALUE ? maxStaleness : null;
+    const result = generateScripts(targetComp, targetScore, fixedTags, excluded, stalenessLimit);
     if (result.error) {
       alert(result.error);
     }
@@ -109,31 +116,6 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
       }
     });
   }, []);
-
-  // Quick exclude from generated results - adds tag to excluded and regenerates
-  const handleExcludeFromResult = useCallback((tagId, category) => {
-    // Check if already excluded
-    if (excludedTags.some(t => t.id === tagId)) return;
-
-    // Add to excluded tags
-    const newExcludedTags = [...excludedTags, { id: tagId, category }];
-    setExcludedTags(newExcludedTags);
-
-    // Regenerate with the new exclusions immediately
-    const fixedTags = collectTagInputs(
-      lockedTags.filter(t => t.id),
-      genrePercents
-    );
-    const excluded = collectTagInputs(
-      newExcludedTags.filter(t => t.id),
-      {}
-    );
-
-    const result = generateScripts(targetComp, targetScore, fixedTags, excluded);
-    if (result.error) {
-      alert(result.error);
-    }
-  }, [excludedTags, lockedTags, genrePercents, targetComp, targetScore, generateScripts]);
 
   const getRequiredTagsText = () => {
     let requiredTags = 4;
@@ -193,13 +175,45 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                 color="#d4af37"
                 subtitle={<span style={{ color: 'var(--accent)' }}>{getRequiredTagsText()}</span>}
               />
+              <Slider
+                label="Max Staleness"
+                value={maxStaleness}
+                onChange={setMaxStaleness}
+                min={1}
+                max={STALENESS_MAX_VALUE}
+                step={1}
+                sliderClass="staleness-slider"
+                color="#cd853f"
+                formatDisplay={(v) => v >= STALENESS_MAX_VALUE ? 'No Max' : String(v)}
+                subtitle={
+                  !tagFreshness
+                    ? <span style={{ color: 'var(--text-muted)' }}>Load a save file to enable staleness filtering.</span>
+                    : maxStaleness >= STALENESS_MAX_VALUE
+                      ? "All elements allowed regardless of staleness."
+                      : `Elements used in more than ${maxStaleness} recent movie${maxStaleness !== 1 ? 's' : ''} will be excluded.`
+                }
+              />
             </div>
+            {codexBannedTags && codexBannedTags.size > 0 && (
+              <label className="freshness-toggle" style={{ marginTop: '10px' }}>
+                <input
+                  type="checkbox"
+                  checked={excludeBanned}
+                  onChange={() => setExcludeBanned(prev => !prev)}
+                />
+                <span className="freshness-checkbox">
+                  <span className="freshness-checkmark" />
+                </span>
+                <span>Exclude banned elements ({codexBannedTags.size})</span>
+              </label>
+            )}
           </LayoutCard>
 
           {/* Locked Elements */}
           <LayoutCard
             className="locked-card"
             title="Locked Elements"
+            defaultCollapsed
             subtitle={<>Select specific tags you <strong>MUST</strong> have in the script.</>}
             headerActions={
               <Button size="sm" variant="primary" onClick={handleResetLocks} title="Reset Locks" />
@@ -224,6 +238,7 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
           <LayoutCard
             className="excluded-card"
             title={<span style={{ color: 'var(--danger)' }}>Excluded Elements</span>}
+            defaultCollapsed
             subtitle={<>Select tags to <strong>BAN</strong> (e.g., due to "The Code"). The generator will never pick these.</>}
             headerActions={
               <>
@@ -281,8 +296,6 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                     isPinned={pinnedScripts.some(p => String(p.uniqueId) === String(script.uniqueId))}
                     onTogglePin={() => togglePin(script.uniqueId)}
                     onTransfer={onTransferToAdvertisers}
-                    onExcludeTag={handleExcludeFromResult}
-                    lockedTagIds={lockedTagIds}
                   />
                 ))}
               </div>

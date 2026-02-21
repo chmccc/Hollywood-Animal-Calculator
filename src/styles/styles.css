@@ -610,6 +610,15 @@ h3 {
     background: rgba(212, 175, 55, 0.1);
 }
 
+.score-display-readonly {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+    width: auto;
+    white-space: nowrap;
+}
+
 .range-wrapper {
     position: relative;
     height: 24px;
@@ -1027,34 +1036,6 @@ input[type="text"]::placeholder {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
-}
-
-.gen-tags-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.gen-tag-chip {
-    background: var(--card-bg-elevated);
-    padding: 6px 12px;
-    border-radius: var(--radius);
-    font-size: 0.9rem;
-    color: var(--text-main);
-    border: 1px solid var(--border);
-}
-
-.gen-tag-chip.tag-fixed {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: rgba(212, 175, 55, 0.1);
-}
-
-.gen-tag-chip small {
-    opacity: 0.6;
-    margin-left: 5px;
-    font-size: 0.75rem;
 }
 
 .gen-actions {
@@ -2502,29 +2483,6 @@ input[type="text"]::placeholder {
 /* ========================================= */
 /* --- CHIP STYLES --- */
 /* ========================================= */
-
-.gen-tag-chip {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* Override for tiny inline chip exclude button */
-.gen-tag-chip .btn.chip-exclude-btn {
-    width: 16px;
-    height: 16px;
-    min-width: 16px;
-    padding: 0;
-    margin-left: 2px;
-    font-size: 0.8rem;
-    border-width: 1px;
-    clip-path: none;
-}
-
-.gen-tag-chip .btn.chip-exclude-btn::before {
-    display: none;
-}
 
 /* ========================================= */
 /* --- SAVE IMPORT MODAL STYLES --- */

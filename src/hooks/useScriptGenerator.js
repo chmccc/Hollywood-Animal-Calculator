@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { calculateMatrixScore, calculateTotalBonuses, getScoringElementCount } from '../utils/calculations';
 
 export function useScriptGenerator() {
-  const { tags, compatibility, genrePairs, starterWhitelist, ownedTagIds, moviesInProduction, maxTagSlots } = useApp();
+  const { tags, compatibility, genrePairs, starterWhitelist, ownedTagIds, moviesInProduction, maxTagSlots, tagFreshness } = useApp();
   const [generatedScripts, setGeneratedScripts] = useState([]);
   const [pinnedScripts, setPinnedScripts] = useState(() => {
     // Load from localStorage on init
@@ -160,12 +160,16 @@ export function useScriptGenerator() {
       .filter(id => !ownedTagIds || ownedTagIds.has(id)); // Filter by owned tags if save loaded
   }, [genrePairs, ownedTagIds]);
 
-  const getRandomTagByCategory = useCallback((category, currentTags, excludedIds) => {
+  const getRandomTagByCategory = useCallback((category, currentTags, excludedIds, maxStaleness = null) => {
     const existingIds = new Set(currentTags.map(t => t.id));
     const allTags = Object.values(tags)
       .filter(t => t.category === category)
-      .filter(t => !ownedTagIds || ownedTagIds.has(t.id)); // Filter by owned tags if save loaded
-    const available = allTags.filter(t => !existingIds.has(t.id) && !excludedIds.has(t.id));
+      .filter(t => !ownedTagIds || ownedTagIds.has(t.id));
+    let available = allTags.filter(t => !existingIds.has(t.id) && !excludedIds.has(t.id));
+    
+    if (maxStaleness !== null && tagFreshness && category !== 'Genre' && category !== 'Setting') {
+      available = available.filter(t => (tagFreshness.get(t.id) || 0) <= maxStaleness);
+    }
     
     if (available.length === 0) return null;
     const picked = available[Math.floor(Math.random() * available.length)];
@@ -175,9 +179,9 @@ export function useScriptGenerator() {
       percent: 1.0,
       category: category
     };
-  }, [tags, ownedTagIds]);
+  }, [tags, ownedTagIds, tagFreshness]);
 
-  const runGenerationAlgorithm = useCallback((targetComp, targetCount, fixedTags, excludedTags) => {
+  const runGenerationAlgorithm = useCallback((targetComp, targetCount, fixedTags, excludedTags, maxStaleness = null) => {
     const excludedIds = new Set(excludedTags.map(t => t.id));
     
     // 1. Setup Initial Candidate
@@ -187,7 +191,7 @@ export function useScriptGenerator() {
     // A. Handle Genres
     const fixedGenres = currentTags.filter(t => t.category === "Genre");
     if (fixedGenres.length === 0) {
-      const genre1 = getRandomTagByCategory("Genre", currentTags, excludedIds);
+      const genre1 = getRandomTagByCategory("Genre", currentTags, excludedIds, maxStaleness);
       if (genre1) {
         let partnerId = null;
         if (Math.random() < 0.3) {
@@ -209,7 +213,7 @@ export function useScriptGenerator() {
 
     // B. Handle Mandatory Setting
     if (!categoriesPresent.has("Setting")) {
-      const randomSetting = getRandomTagByCategory("Setting", currentTags, excludedIds);
+      const randomSetting = getRandomTagByCategory("Setting", currentTags, excludedIds, maxStaleness);
       if (randomSetting) {
         currentTags.push(randomSetting);
         categoriesPresent.add("Setting");
@@ -220,7 +224,7 @@ export function useScriptGenerator() {
     const scoringMandatory = ["Protagonist", "Antagonist", "Finale"];
     scoringMandatory.forEach(cat => {
       if (!categoriesPresent.has(cat) && getScoringElementCount(currentTags) < targetCount) {
-        const randomTag = getRandomTagByCategory(cat, currentTags, excludedIds);
+        const randomTag = getRandomTagByCategory(cat, currentTags, excludedIds, maxStaleness);
         if (randomTag) {
           currentTags.push(randomTag);
           categoriesPresent.add(cat);
@@ -232,7 +236,7 @@ export function useScriptGenerator() {
     const fillerCats = ["Supporting Character", "Theme & Event"];
     while (getScoringElementCount(currentTags) < targetCount) {
       const randCat = fillerCats[Math.floor(Math.random() * fillerCats.length)];
-      const randomTag = getRandomTagByCategory(randCat, currentTags, excludedIds);
+      const randomTag = getRandomTagByCategory(randCat, currentTags, excludedIds, maxStaleness);
       if (randomTag) currentTags.push(randomTag);
       else break;
     }
@@ -252,7 +256,7 @@ export function useScriptGenerator() {
       
       const swapIdx = mutableIndices[Math.floor(Math.random() * mutableIndices.length)];
       const tagToSwap = candidate[swapIdx];
-      const newTag = getRandomTagByCategory(tagToSwap.category, candidate, excludedIds);
+      const newTag = getRandomTagByCategory(tagToSwap.category, candidate, excludedIds, maxStaleness);
       
       if (newTag) {
         candidate[swapIdx] = newTag;
@@ -298,7 +302,7 @@ export function useScriptGenerator() {
     };
   }, [tags, compatibility, genrePairs, getRandomTagByCategory, getCompatibleGenres]);
 
-  const generateScripts = useCallback((targetComp, targetScoreInput, fixedTags, excludedTags) => {
+  const generateScripts = useCallback((targetComp, targetScoreInput, fixedTags, excludedTags, maxStaleness = null) => {
     // Map Movie Score to Required Scoring Elements
     let targetCount = 4;
     if (targetScoreInput === 6) targetCount = 5;
@@ -324,7 +328,7 @@ export function useScriptGenerator() {
       const MAX_ATTEMPTS = 50;
       
       for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-        const candidate = runGenerationAlgorithm(targetComp, targetCount, fixedTags, excludedTags);
+        const candidate = runGenerationAlgorithm(targetComp, targetCount, fixedTags, excludedTags, maxStaleness);
         
         if (!bestCandidate || candidate.stats.avgComp > bestCandidate.stats.avgComp) {
           bestCandidate = candidate;

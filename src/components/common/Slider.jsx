@@ -9,7 +9,8 @@ function Slider({
   step = 0.1,
   sliderClass = 'com-slider',
   color = '#d4af37',
-  subtitle = null
+  subtitle = null,
+  formatDisplay = null
 }) {
   const sliderRef = useRef(null);
 
@@ -36,19 +37,25 @@ function Slider({
     onChange(val);
   };
 
+  const displayValue = formatDisplay ? formatDisplay(value) : null;
+
   return (
     <div className="score-control-group">
       <div className="score-label-row">
         <label>{label}</label>
-        <input
-          type="number"
-          className="score-number-display"
-          step={step}
-          min={min}
-          max={max}
-          value={value}
-          onChange={handleInputChange}
-        />
+        {displayValue !== null ? (
+          <span className="score-number-display score-display-readonly">{displayValue}</span>
+        ) : (
+          <input
+            type="number"
+            className="score-number-display"
+            step={step}
+            min={min}
+            max={max}
+            value={value}
+            onChange={handleInputChange}
+          />
+        )}
       </div>
       <div className="range-wrapper">
         <input
