@@ -124,9 +124,9 @@ h1, h2, h3, .modal-header h3 {
     border-radius: var(--radius);
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 2px solid var(--accent);
-    color: #b8a890;
-    background: transparent;
+    border: 1px solid #9e978b;
+    color: #2a2826;
+    background: linear-gradient(135deg, #908880 0%, #a8a095 50%, #908880 100%);
     white-space: nowrap;
     position: relative;
     clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
@@ -136,23 +136,25 @@ h1, h2, h3, .modal-header h3 {
 .btn::before {
     content: '';
     position: absolute;
-    top: 3px;
-    left: 3px;
-    right: 3px;
-    bottom: 3px;
-    border: 1px solid var(--accent);
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
     clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
     pointer-events: none;
-    opacity: 0.4;
+    opacity: 1;
 }
 
 .btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--accent) 0%, #a89050 100%);
-    color: #0e0e0c;
+    background: linear-gradient(135deg, #b8b0a5 0%, #cec6b8 50%, #b8b0a5 100%);
+    color: #1a1918;
+    border-color: #cec6b8;
+    box-shadow: 0 0 10px rgba(200, 190, 170, 0.25);
 }
 
 .btn:hover:not(:disabled)::before {
-    border-color: rgba(0, 0, 0, 0.2);
+    border-color: rgba(0, 0, 0, 0.1);
     opacity: 1;
 }
 
@@ -260,31 +262,33 @@ h1, h2, h3, .modal-header h3 {
     transform: translateY(0);
 }
 
-/* Secondary - Gold outline (default) */
+/* Secondary - Slightly brighter silver */
 .btn-secondary {
-    background: transparent;
-    border-color: var(--accent);
-    color: var(--accent);
+    background: linear-gradient(135deg, #9e968a 0%, #b5ad9f 50%, #9e968a 100%);
+    border-color: #b5ad9f;
+    color: #2a2826;
 }
 
-/* Ghost - Subtle outline */
+/* Ghost - Dimmer silver */
 .btn-ghost {
-    border-color: var(--border-gold);
-    color: var(--text-muted);
+    background: linear-gradient(135deg, #706860 0%, #857d72 50%, #706860 100%);
+    border-color: #857d72;
+    color: #e8e0d0;
 }
 
 .btn-ghost::before {
-    border-color: var(--border-gold);
+    border-color: rgba(0, 0, 0, 0.12);
 }
 
 .btn-ghost:hover:not(:disabled) {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: rgba(201, 179, 112, 0.1);
+    background: linear-gradient(135deg, #a8a095 0%, #bfb7aa 50%, #a8a095 100%);
+    border-color: #bfb7aa;
+    color: #1a1918;
+    box-shadow: 0 0 10px rgba(200, 190, 170, 0.2);
 }
 
 .btn-ghost:hover:not(:disabled)::before {
-    border-color: var(--accent);
+    border-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Danger variant */
@@ -457,24 +461,19 @@ h2 {
 }
 
 /* Tab buttons use the unified .btn system via Button component */
-/* Override default button border to ghost style for tabs */
 .tab-nav .btn {
-    border-color: var(--border-gold);
     padding: 12px 28px;
 }
 
-.tab-nav .btn::before {
-    border-color: var(--border-gold);
-}
-
 .tab-nav .btn:hover:not(:disabled):not(.btn-active) {
-    border-color: var(--accent);
-    color: var(--text-main);
-    background: rgba(201, 179, 112, 0.1);
+    background: linear-gradient(135deg, #b8b0a5 0%, #cec6b8 50%, #b8b0a5 100%);
+    border-color: #cec6b8;
+    color: #1a1918;
+    box-shadow: 0 0 10px rgba(200, 190, 170, 0.25);
 }
 
-.tab-nav .btn:hover:not(:disabled)::before {
-    border-color: var(--accent);
+.tab-nav .btn:hover:not(:disabled):not(.btn-active)::before {
+    border-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Active tab state */
