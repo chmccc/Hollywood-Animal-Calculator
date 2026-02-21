@@ -25,6 +25,7 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
   const [lockedTags, setLockedTags] = useState([]);
   const [excludedTags, setExcludedTags] = useState([]);
   const [genrePercents, setGenrePercents] = useState({});
+  const [lockedInputMode, setLockedInputMode] = useState('browser'); // 'dropdown' | 'browser'
   const [excludedInputMode, setExcludedInputMode] = useState('browser'); // 'dropdown' | 'browser'
   const [maxStaleness, setMaxStaleness] = useState(STALENESS_MAX_VALUE);
   const [excludeBanned, setExcludeBanned] = useState(true);
@@ -44,10 +45,18 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     }
   }, []);
 
+  const lockedTagIds = useMemo(() => 
+    new Set(lockedTags.filter(t => t.id).map(t => t.id)), 
+    [lockedTags]
+  );
+
   const excludedTagIds = useMemo(() => 
     new Set(excludedTags.filter(t => t.id).map(t => t.id)), 
     [excludedTags]
   );
+
+  const lockedCount = lockedTags.filter(t => t.id).length;
+  const excludedCount = excludedTags.filter(t => t.id).length;
 
   const handleGenrePercentChange = useCallback((tagId, value) => {
     setGenrePercents(prev => ({ ...prev, [tagId]: value }));
@@ -105,7 +114,17 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
     alert(`Saved ${excludedTags.length} exclusion${excludedTags.length !== 1 ? 's' : ''} to local storage.`);
   };
 
-  // TagBrowser toggle handler for excluded tags
+  const handleLockedTagToggle = useCallback((tagId, category) => {
+    setLockedTags(prev => {
+      const exists = prev.some(t => t.id === tagId);
+      if (exists) {
+        return prev.filter(t => t.id !== tagId);
+      } else {
+        return [...prev, { id: tagId, category }];
+      }
+    });
+  }, []);
+
   const handleExcludedTagToggle = useCallback((tagId, category) => {
     setExcludedTags(prev => {
       const exists = prev.some(t => t.id === tagId);
@@ -212,32 +231,47 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
           {/* Locked Elements */}
           <LayoutCard
             className="locked-card"
-            title="Locked Elements"
+            title={lockedCount ? `Locked Elements (${lockedCount})` : 'Locked Elements'}
             defaultCollapsed
             subtitle={<>Select specific tags you <strong>MUST</strong> have in the script.</>}
             headerActions={
-              <Button size="sm" variant="primary" onClick={handleResetLocks} title="Reset Locks" />
+              <>
+                <Button
+                  size="sm"
+                  onClick={() => setLockedInputMode(prev => prev === 'dropdown' ? 'browser' : 'dropdown')}
+                  title={lockedInputMode === 'dropdown' ? 'Browse Mode' : 'Dropdown Mode'}
+                />
+                <Button size="sm" variant="primary" onClick={handleResetLocks} title="Reset Locks" />
+              </>
             }
           >
-            <div id="selectors-container-generator">
-              {categories.map(category => (
-                <CategorySelector
-                  key={category}
-                  category={category}
-                  selectedTags={lockedTags}
-                  onTagsChange={setLockedTags}
-                  genrePercents={genrePercents}
-                  onGenrePercentChange={handleGenrePercentChange}
-                  context="generator"
-                />
-              ))}
-            </div>
+            {lockedInputMode === 'dropdown' ? (
+              <div id="selectors-container-generator">
+                {categories.map(category => (
+                  <CategorySelector
+                    key={category}
+                    category={category}
+                    selectedTags={lockedTags}
+                    onTagsChange={setLockedTags}
+                    genrePercents={genrePercents}
+                    onGenrePercentChange={handleGenrePercentChange}
+                    context="generator"
+                  />
+                ))}
+              </div>
+            ) : (
+              <TagBrowser
+                selectedTagIds={lockedTagIds}
+                onToggle={handleLockedTagToggle}
+                variant="locked"
+              />
+            )}
           </LayoutCard>
 
           {/* Excluded Elements */}
           <LayoutCard
             className="excluded-card"
-            title={<span style={{ color: 'var(--danger)' }}>Excluded Elements</span>}
+            title={excludedCount ? `Excluded Elements (${excludedCount})` : 'Excluded Elements'}
             defaultCollapsed
             subtitle={<>Select tags to <strong>BAN</strong> (e.g., due to "The Code"). The generator will never pick these.</>}
             headerActions={
