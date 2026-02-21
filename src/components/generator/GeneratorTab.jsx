@@ -9,7 +9,8 @@ import TagBrowser from '../common/TagBrowser';
 import ScriptCard from './ScriptCard';
 import { collectTagInputs } from '../../utils/tagHelpers';
 
-const STALENESS_MAX_VALUE = 6; // Internal value representing "No Max"
+const STALENESS_MAX_VALUE = 6;
+const MAX_ACTORS_NO_LIMIT = 9;
 
 function GeneratorTab({ onTransferToAdvertisers = null }) {
   const { categories, ownedTagIds, maxTagSlots, tagFreshness, codexBannedTags, freshnessIncludeUnreleased, toggleFreshnessIncludeUnreleased } = useApp();
@@ -28,6 +29,7 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
   const [lockedInputMode, setLockedInputMode] = useState('browser'); // 'dropdown' | 'browser'
   const [excludedInputMode, setExcludedInputMode] = useState('browser'); // 'dropdown' | 'browser'
   const [maxStaleness, setMaxStaleness] = useState(STALENESS_MAX_VALUE);
+  const [maxActors, setMaxActors] = useState(MAX_ACTORS_NO_LIMIT);
   const [excludeBanned, setExcludeBanned] = useState(true);
 
   // Load exclusions from localStorage on mount
@@ -80,7 +82,8 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
 
     const excluded = collectTagInputs(allExcluded, {});
     const stalenessLimit = maxStaleness < STALENESS_MAX_VALUE ? maxStaleness : null;
-    const result = generateScripts(targetComp, targetScore, fixedTags, excluded, stalenessLimit);
+    const actorsLimit = maxActors < MAX_ACTORS_NO_LIMIT ? maxActors : null;
+    const result = generateScripts(targetComp, targetScore, fixedTags, excluded, stalenessLimit, actorsLimit);
     if (result.error) {
       alert(result.error);
     }
@@ -210,6 +213,22 @@ function GeneratorTab({ onTransferToAdvertisers = null }) {
                     : maxStaleness >= STALENESS_MAX_VALUE
                       ? "All elements allowed regardless of staleness."
                       : `Elements used in more than ${maxStaleness} recent movie${maxStaleness !== 1 ? 's' : ''} will be excluded.`
+                }
+              />
+              <Slider
+                label="Max Actors"
+                value={maxActors}
+                onChange={setMaxActors}
+                min={1}
+                max={MAX_ACTORS_NO_LIMIT}
+                step={1}
+                sliderClass="actors-slider"
+                color="#7b9ec4"
+                formatDisplay={(v) => v >= MAX_ACTORS_NO_LIMIT ? 'No Max' : String(v)}
+                subtitle={
+                  maxActors >= MAX_ACTORS_NO_LIMIT
+                    ? "No limit on Protagonist, Antagonist, and Supporting Character elements."
+                    : `At most ${maxActors} element${maxActors !== 1 ? 's' : ''} across Protagonist, Antagonist, and Supporting Character.`
                 }
               />
             </div>

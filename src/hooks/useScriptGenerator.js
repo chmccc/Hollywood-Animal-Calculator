@@ -181,8 +181,13 @@ export function useScriptGenerator() {
     };
   }, [tags, ownedTagIds, tagFreshness]);
 
-  const runGenerationAlgorithm = useCallback((targetComp, targetCount, fixedTags, excludedTags, maxStaleness = null) => {
+  const ACTOR_CATEGORIES = new Set(["Protagonist", "Antagonist", "Supporting Character"]);
+
+  const countActors = (tagList) => tagList.filter(t => ACTOR_CATEGORIES.has(t.category)).length;
+
+  const runGenerationAlgorithm = useCallback((targetComp, targetCount, fixedTags, excludedTags, maxStaleness = null, maxActors = null) => {
     const excludedIds = new Set(excludedTags.map(t => t.id));
+    const canAddActor = (tagList) => maxActors === null || countActors(tagList) < maxActors;
     
     // 1. Setup Initial Candidate
     let currentTags = [...fixedTags];
@@ -224,6 +229,7 @@ export function useScriptGenerator() {
     const scoringMandatory = ["Protagonist", "Antagonist", "Finale"];
     scoringMandatory.forEach(cat => {
       if (!categoriesPresent.has(cat) && getScoringElementCount(currentTags) < targetCount) {
+        if (ACTOR_CATEGORIES.has(cat) && !canAddActor(currentTags)) return;
         const randomTag = getRandomTagByCategory(cat, currentTags, excludedIds, maxStaleness);
         if (randomTag) {
           currentTags.push(randomTag);
@@ -235,7 +241,10 @@ export function useScriptGenerator() {
     // D. Fill remaining slots
     const fillerCats = ["Supporting Character", "Theme & Event"];
     while (getScoringElementCount(currentTags) < targetCount) {
-      const randCat = fillerCats[Math.floor(Math.random() * fillerCats.length)];
+      let randCat = fillerCats[Math.floor(Math.random() * fillerCats.length)];
+      if (ACTOR_CATEGORIES.has(randCat) && !canAddActor(currentTags)) {
+        randCat = "Theme & Event";
+      }
       const randomTag = getRandomTagByCategory(randCat, currentTags, excludedIds, maxStaleness);
       if (randomTag) currentTags.push(randomTag);
       else break;
@@ -302,7 +311,7 @@ export function useScriptGenerator() {
     };
   }, [tags, compatibility, genrePairs, getRandomTagByCategory, getCompatibleGenres]);
 
-  const generateScripts = useCallback((targetComp, targetScoreInput, fixedTags, excludedTags, maxStaleness = null) => {
+  const generateScripts = useCallback((targetComp, targetScoreInput, fixedTags, excludedTags, maxStaleness = null, maxActors = null) => {
     // Map Movie Score to Required Scoring Elements
     let targetCount = 4;
     if (targetScoreInput === 6) targetCount = 5;
@@ -328,7 +337,7 @@ export function useScriptGenerator() {
       const MAX_ATTEMPTS = 50;
       
       for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-        const candidate = runGenerationAlgorithm(targetComp, targetCount, fixedTags, excludedTags, maxStaleness);
+        const candidate = runGenerationAlgorithm(targetComp, targetCount, fixedTags, excludedTags, maxStaleness, maxActors);
         
         if (!bestCandidate || candidate.stats.avgComp > bestCandidate.stats.avgComp) {
           bestCandidate = candidate;
